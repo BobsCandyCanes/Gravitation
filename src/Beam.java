@@ -99,7 +99,7 @@ public class Beam extends Projectile
 
 	public void destroy()
 	{
-		GamePanel.removeProjectile(this);
+		GamePanel.removeEntity(this);
 	}
 
 	public void draw(Graphics g)

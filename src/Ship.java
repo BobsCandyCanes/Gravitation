@@ -10,7 +10,11 @@ import javax.imageio.ImageIO;
 
 public class Ship extends Entity
 {	
-	protected double maxHealth = 100;
+	protected final double HEALTH_REGEN = 0.1;
+	
+	protected final double MAX_HEALTH = 50;
+	
+	protected int firingDelay = 8; //Higher number means slower firing
 
 	protected double health = 50;
 
@@ -20,7 +24,9 @@ public class Ship extends Entity
 	
 	protected int turnsSinceLastShot = 0;
 
-	protected int firingSpeed = 8; //Higher number means slower firing
+
+	
+	protected boolean shieldUp = false;
 	
 	public Ship()
 	{
@@ -56,6 +62,13 @@ public class Ship extends Entity
 		
 		g2d.rotate(-Math.toRadians(angleInDegrees), centerXPosition, centerYPosition);
 		
+		if(shieldUp)
+		{
+			g2d.setColor(Color.CYAN.darker());
+			g2d.fillOval((int)(xPosition - width / 2), (int)(yPosition - height / 2), 
+						 (int)(width * 2), (int)(height * 2));
+		}
+		
 		g2d.drawImage(sprite, (int)xPosition, (int)yPosition, null);
 
 		g2d.setColor(Color.BLACK);
@@ -86,6 +99,12 @@ public class Ship extends Entity
 		turnsSinceLastShot++;
 		
 		calculateLocation();
+		checkForCollision();
+		
+		if(!GamePanel.isMultiplayer() && health < MAX_HEALTH)
+		{
+			regenerateHealth();
+		}
 	}
 	
 	public void calculateLocation()
@@ -133,6 +152,26 @@ public class Ship extends Entity
 		bounds = new Rectangle ((int)centerXPosition - newWidth / 2, (int)centerYPosition - newHeight / 2, newWidth, newHeight);
 	}
 	
+	public void checkForCollision()
+	{
+		for(Entity e : GamePanel.getEntities())
+		{
+			if(e instanceof Planet)
+			{
+				if(getDistanceFrom(e) < e.getWidth() / 2)
+				{
+					destroy();
+					return;
+				}
+			}
+		}
+	}
+	
+	public void regenerateHealth()
+	{
+		health += HEALTH_REGEN;
+	}
+	
 	public void destroy()
 	{
 		GamePanel.removeShip(this);
@@ -142,7 +181,7 @@ public class Ship extends Entity
 
 	public void shoot()
 	{
-		if(turnsSinceLastShot >= firingSpeed)
+		if(turnsSinceLastShot >= firingDelay)
 		{
 			turnsSinceLastShot = 0;
 			
@@ -152,17 +191,17 @@ public class Ship extends Entity
 			double vX = xVelocity + xVector;
 			double vY = yVelocity - yVector;
 			
-			GamePanel.addProjectile(new Projectile(getCenterXPosition() + xVector * 2.5, getCenterYPosition() - yVector * 2.5, vX, vY));
+			GamePanel.addEntity(new Projectile(getCenterXPosition() + xVector * 2.5, getCenterYPosition() - yVector * 2.5, vX, vY));
 		}
 	}
 	
 	public void shootBeam()
 	{
-		if(turnsSinceLastShot >= firingSpeed)
+		if(turnsSinceLastShot >= firingDelay)
 		{
 			turnsSinceLastShot = 0;
 
-			GamePanel.addProjectile(new Beam(this));
+			GamePanel.addEntity(new Beam(this));
 		}
 	}
 

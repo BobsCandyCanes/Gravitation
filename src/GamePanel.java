@@ -21,9 +21,6 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	private static Timer timer;
 
 	private static ArrayList<Entity> entities = new ArrayList<Entity>();
-	private static ArrayList<Planet> planets = new ArrayList<Planet>();
-	private static ArrayList<Ship> ships = new ArrayList<Ship>();
-	private static ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 
 	private Controller controller;
 
@@ -34,6 +31,8 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	private static boolean isMultiplayer = true;
 
+	private static int blueScore; //multiplayer only
+	private static int redScore;
 	private static int score; //singleplayer only
 
 	public GamePanel(int x, int y)
@@ -54,7 +53,7 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	{	
 		g = getGraphics();
 
-		setBackground(Color.DARK_GRAY);
+		setBackground(Color.BLACK);
 
 		resetWorld();
 
@@ -69,8 +68,6 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	public static void resetWorld()
 	{
 		entities = new ArrayList<Entity>();
-		projectiles = new ArrayList<Projectile>();
-		ships = new ArrayList<Ship>();
 
 		generateRandomPlanets();
 
@@ -115,22 +112,26 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	{
 		Random rand = new Random();
 
-		int numPlanets = rand.nextInt(4) + 1;
-
-		for(int j = 0; j < numPlanets; j++)
+		for(int r = 0; r < panelHeight; r+= panelHeight / 2)
 		{
-			Planet randomPlanet = new Planet(rand.nextInt(panelWidth - 100) + 50, rand.nextInt(panelHeight - 100) + 50);
-
-			int numMoons = rand.nextInt(3) + 1;
-			
-			for(int i = 0; i < numMoons; i++)
+			for(int c = 0; c < panelWidth; c+= panelWidth / 3)
 			{
-				randomPlanet.addMoon((40 * (i + 1)) + 40);
+				if(rand.nextBoolean())
+				{
+					Planet randomPlanet = new Planet(c + panelWidth / 6, r + panelHeight / 4);
+
+					int numMoons = rand.nextInt(3) + 1;
+
+					for(int i = 0; i < numMoons; i++)
+					{
+						randomPlanet.addMoon((40 * (i + 1)) + 40);
+					}
+
+					randomPlanet.addSpaceStation(100);
+
+					addPlanet(randomPlanet);
+				}
 			}
-
-			//randomPlanet.addSpaceStation(100);
-
-			addPlanet(randomPlanet);
 		}
 	}
 
@@ -201,7 +202,14 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	public void drawHUD(Graphics g)
 	{
-		if(!isMultiplayer)
+		if(isMultiplayer)
+		{
+			g.setColor(Color.BLUE);
+			g.drawString("Blue: " + blueScore, 10, 10);
+			g.setColor(Color.RED);
+			g.drawString("Red: " + redScore, panelWidth - 55, 10);
+		}
+		else
 		{
 			g.setColor(Color.WHITE);
 			g.drawString("Score: " + score, 10, 10);
@@ -222,7 +230,7 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 		double yVelocity = (int)(Math.random() * 25);
 
-		addProjectile(new Asteroid(xPosition, yPosition, xVelocity, yVelocity, (int) (Math.random() * 20)));
+		addEntity(new Asteroid(xPosition, yPosition, xVelocity, yVelocity, (int) (Math.random() * 20)));
 	}
 
 	public static void addEntity(Entity e)
@@ -237,7 +245,6 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	public static void addShip(Ship s)
 	{
-		ships.add(s);
 		entities.add(s);
 	}
 
@@ -245,10 +252,18 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	{
 		if(s.equals(player1Ship))
 		{
+			if(isMultiplayer)
+			{
+				redScore++;
+			}
 			player1Ship = null;
 		}
 		else if(s.equals(player2Ship))
 		{
+			if(isMultiplayer)
+			{
+				blueScore++;
+			}
 			player2Ship = null;
 		}
 		else if(s instanceof AIShip)
@@ -256,7 +271,6 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			score++;
 		}
 
-		ships.remove(s);
 		entities.remove(s);
 	}
 
@@ -279,30 +293,12 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	public static void addPlanet(Planet p)
 	{
-		planets.add(p);
 		entities.add(p);
-	}
-
-	public static void addProjectile(Projectile p)
-	{
-		projectiles.add(p);
-		entities.add(p);
-	}
-
-	public static void removeProjectile(Projectile p)
-	{
-		projectiles.remove(p);
-		entities.remove(p);
 	}
 
 	public static ArrayList<Entity> getEntities()
 	{
 		return entities;
-	}
-
-	public static ArrayList<Projectile> getProjectiles()
-	{
-		return projectiles;
 	}
 
 	public static Ship getPlayer1Ship()
@@ -328,6 +324,11 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	public static void setMultiplayer(boolean b)
 	{
 		isMultiplayer = b;
+		if(isMultiplayer)
+		{
+			redScore = 0;
+			blueScore = 0;
+		}
 	}
 
 	public static boolean isMultiplayer()

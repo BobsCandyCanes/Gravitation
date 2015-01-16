@@ -50,8 +50,8 @@ public class Controller implements KeyListener
 		{
 			if(keys[W]) { player1.moveShip("forward", shipSpeed);  }
 			if(keys[S]) { player1.moveShip("backward", shipSpeed); }
-			if(keys[A]) { player1.rotate(5);  }
-			if(keys[D]) { player1.rotate(-5);   }
+			if(keys[A]) { player1.rotate(4);  }
+			if(keys[D]) { player1.rotate(-4);   }
 
 			if(keys[SPACE]) { player1.shoot(); }
 		}
@@ -60,8 +60,8 @@ public class Controller implements KeyListener
 		{
 			if(keys[DOWN])  { player2.moveShip("forward", shipSpeed);  }
 			if(keys[UP])    { player2.moveShip("backward", shipSpeed); }
-			if(keys[LEFT])  { player2.rotate(5);  }
-			if(keys[RIGHT]) { player2.rotate(-5);   }
+			if(keys[LEFT])  { player2.rotate(4);  }
+			if(keys[RIGHT]) { player2.rotate(-4);   }
 
 			if(keys[SHIFT]) { player2.shoot(); }
 		}

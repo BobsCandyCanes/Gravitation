@@ -103,7 +103,7 @@ public class Projectile extends Entity
 
 	public void destroy()
 	{
-		GamePanel.removeProjectile(this);
+		GamePanel.removeEntity(this);
 
 		GamePanel.addEntity(new Explosion(centerXPosition, centerYPosition, 10));
 	}

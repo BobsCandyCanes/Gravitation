@@ -84,7 +84,7 @@ public class SpaceStation extends Moon
 					double projectileXVelocity = xDifference / 3 * 4;
 					double projectileYVelocity = yDifference / 3 * 4;
 					
-					GamePanel.addProjectile(new Projectile(centerXPosition, centerYPosition, projectileXVelocity, projectileYVelocity));
+					GamePanel.addEntity(new Projectile(centerXPosition, centerYPosition, projectileXVelocity, projectileYVelocity));
 				}
 			}
 		}

@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 
 public class Player2Ship extends Ship
 {	
+
 	public Player2Ship()
 	{
 
@@ -21,14 +22,14 @@ public class Player2Ship extends Ship
 	{
 		super(x, y, w, h);
 
-		importSprite();
+		firingDelay = 8;
 		
-		firingSpeed = 8;
+		importSprite();
 	}
 	
 	public void shoot()
 	{
-		if(turnsSinceLastShot >= firingSpeed)
+		if(turnsSinceLastShot >= firingDelay)
 		{
 			turnsSinceLastShot = 0;
 			
@@ -38,7 +39,7 @@ public class Player2Ship extends Ship
 			double vX = xVelocity - xVector;
 			double vY = yVelocity + yVector;
 			
-			GamePanel.addProjectile(new Projectile(getCenterXPosition() - xVector * 2.5, getCenterYPosition() + yVector * 2.5, vX, vY));
+			GamePanel.addEntity(new Projectile(getCenterXPosition() - xVector * 2.5, getCenterYPosition() + yVector * 2.5, vX, vY));
 		}
 	}
 

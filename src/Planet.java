@@ -82,41 +82,46 @@ public class Planet extends Entity
 
 	public void attractProjectiles()
 	{
-		ArrayList<Projectile> projectiles = GamePanel.getProjectiles();
+		ArrayList<Entity> entities = GamePanel.getEntities();
 
-		for(int i = 0; i < projectiles.size(); i++)
+		for(int i = 0; i < entities.size(); i++)
 		{
-			Projectile p = projectiles.get(i);
+			Entity e = entities.get(i);
 
-			if(!(p instanceof Beam))
+			if(e instanceof Projectile)
 			{
-				double distanceFromProjectile = Math.abs(getDistanceFrom(p));
-
-				if((distanceFromProjectile <= radiusOfGravity))
+				Projectile p = (Projectile)e;
+				
+				if(!(p instanceof Beam))
 				{
-					double xDiff = getXDistanceFrom(p);
-					double yDiff = getYDistanceFrom(p);
+					double distanceFromProjectile = Math.abs(getDistanceFrom(p));
 
-					// F = G * ((m1 * m2) / (r^2))
+					if((distanceFromProjectile <= radiusOfGravity))
+					{
+						double xDiff = getXDistanceFrom(p);
+						double yDiff = getYDistanceFrom(p);
 
-					double gravitationalForce = 7 * (mass * p.getMass()) / (distanceFromProjectile * distanceFromProjectile);
+						// F = G * ((m1 * m2) / (r^2))
 
-					if(xDiff > 0)
-					{
-						p.setXVelocity(p.getXVelocity() - gravitationalForce);
-					}
-					else if(xDiff < 0)
-					{
-						p.setXVelocity(p.getXVelocity() + gravitationalForce);
-					}
+						double gravitationalForce = 7 * (mass * p.getMass()) / (distanceFromProjectile * distanceFromProjectile);
 
-					if(yDiff > 0)
-					{
-						p.setYVelocity(p.getYVelocity() - gravitationalForce);
-					}
-					else if(yDiff < 0)
-					{
-						p.setYVelocity(p.getYVelocity() + gravitationalForce);
+						if(xDiff > 0)
+						{
+							p.setXVelocity(p.getXVelocity() - gravitationalForce);
+						}
+						else if(xDiff < 0)
+						{
+							p.setXVelocity(p.getXVelocity() + gravitationalForce);
+						}
+
+						if(yDiff > 0)
+						{
+							p.setYVelocity(p.getYVelocity() - gravitationalForce);
+						}
+						else if(yDiff < 0)
+						{
+							p.setYVelocity(p.getYVelocity() + gravitationalForce);
+						}
 					}
 				}
 			}
