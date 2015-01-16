@@ -4,11 +4,11 @@ import java.awt.Color;
 
 import javax.swing.JFrame;
 
-public class Gravitation
+public class Gravity
 {
 	private static BorderLayout mainLayout = new BorderLayout();
 
-	private static JFrame mainWindow = new JFrame("Gravitation");
+	private static JFrame mainWindow = new JFrame("Gravity");
 
 	private static GamePanel gamePanel;
 	private static MainMenu mainMenu;

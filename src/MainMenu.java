@@ -51,7 +51,7 @@ public class MainMenu extends JPanel implements ActionListener
 			public void actionPerformed(ActionEvent e)
 			{
 				GamePanel.setMultiplayer(false);
-				Gravitation.setState("gameRunning");
+				Gravity.setState("gameRunning");
 			}
 		});
  
@@ -60,7 +60,7 @@ public class MainMenu extends JPanel implements ActionListener
 			public void actionPerformed(ActionEvent e)
 			{
 				GamePanel.setMultiplayer(true);
-				Gravitation.setState("gameRunning");
+				Gravity.setState("gameRunning");
 			}
 		});
 

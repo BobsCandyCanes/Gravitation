@@ -78,7 +78,7 @@ public class Controller implements KeyListener
 			slightPause();
 		}
 
-		if(keys[ESCAPE]) { Gravitation.setState("mainMenu"); }
+		if(keys[ESCAPE]) { Gravity.setState("mainMenu"); }
 	}
 	
 	public void slightPause()
