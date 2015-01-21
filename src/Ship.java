@@ -13,6 +13,7 @@ public class Ship extends Entity
 	protected final double HEALTH_REGEN = 0.1;
 	
 	protected final double MAX_HEALTH = 50;
+	protected final double MAX_SPEED = 3.5;
 	
 	protected int firingDelay = 8; //Higher number means slower firing
 
@@ -23,8 +24,6 @@ public class Ship extends Entity
 	protected double maxWidth;
 	
 	protected int turnsSinceLastShot = 0;
-
-
 	
 	protected boolean shieldUp = false;
 	
@@ -35,7 +34,7 @@ public class Ship extends Entity
 
 	public Ship(int x, int y)
 	{
-		this(x, y, 20, 10);
+		this(x, y, 25, 12);
 	}
 
 	public Ship(int x, int y, int w, int h)
@@ -101,7 +100,7 @@ public class Ship extends Entity
 		calculateLocation();
 		checkForCollision();
 		
-		if(!GamePanel.isMultiplayer() && health < MAX_HEALTH)
+		if(health < MAX_HEALTH)
 		{
 			regenerateHealth();
 		}
@@ -137,8 +136,8 @@ public class Ship extends Entity
 
 		recalculateBounds();
 
-		xVelocity *= 0.92;
-		yVelocity *= 0.92;
+		xVelocity *= 0.96;
+		yVelocity *= 0.96;
 	}
 
 	public void recalculateBounds()
@@ -152,13 +151,34 @@ public class Ship extends Entity
 		bounds = new Rectangle ((int)centerXPosition - newWidth / 2, (int)centerYPosition - newHeight / 2, newWidth, newHeight);
 	}
 	
+	public void enforceSpeedLimit()
+	{
+		if(xVelocity > MAX_SPEED)
+		{
+			xVelocity = MAX_SPEED;
+		}
+		else if(xVelocity < -MAX_SPEED)
+		{
+			xVelocity = -MAX_SPEED;
+		}
+
+		if(yVelocity > MAX_SPEED)
+		{
+			yVelocity = MAX_SPEED;
+		}
+		else if(yVelocity < -MAX_SPEED)
+		{
+			yVelocity = -MAX_SPEED;
+		}
+	}
+	
 	public void checkForCollision()
 	{
 		for(Entity e : GamePanel.getEntities())
 		{
-			if(e instanceof Planet)
+			if(e instanceof Planet && !(e instanceof SpaceStation))
 			{
-				if(getDistanceFrom(e) < e.getWidth() / 2)
+				if(getDistanceFrom(e) < (e.getWidth() / 2) + (width / 2))
 				{
 					destroy();
 					return;
@@ -204,26 +224,6 @@ public class Ship extends Entity
 			GamePanel.addEntity(new Beam(this));
 		}
 	}
-
-	public double getXVelocity()
-	{
-		return xVelocity;
-	}
-
-	public double getYVelocity()
-	{
-		return yVelocity;
-	}
-
-	public void setXVelocity(double xVelocity)
-	{
-		this.xVelocity = xVelocity;
-	}
-
-	public void setYVelocity(double yVelocity)
-	{
-		this.yVelocity = yVelocity;
-	}
 	
 	public void takeDamage(double damage)
 	{
@@ -264,5 +264,30 @@ public class Ship extends Entity
 			
 			xVelocity -= Math.cos(angleInRadians) / 2;
 		}
+	}
+	
+	public double getHealth()
+	{
+		return health;
+	}
+	
+	public double getXVelocity()
+	{
+		return xVelocity;
+	}
+
+	public double getYVelocity()
+	{
+		return yVelocity;
+	}
+
+	public void setXVelocity(double xVelocity)
+	{
+		this.xVelocity = xVelocity;
+	}
+
+	public void setYVelocity(double yVelocity)
+	{
+		this.yVelocity = yVelocity;
 	}
 }

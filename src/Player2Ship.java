@@ -15,7 +15,7 @@ public class Player2Ship extends Ship
 
 	public Player2Ship(int x, int y)
 	{
-		this(x, y, 20, 10);
+		this(x, y, 25, 12);
 	}
 
 	public Player2Ship(int x, int y, int w, int h)
