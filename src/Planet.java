@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -24,7 +25,7 @@ public class Planet extends Entity
 
 	public Planet(int x, int y)
 	{
-		this(x, y, 80);
+		this(x, y, 100);
 	}
 
 	public Planet(int x, int y, int size)
@@ -35,7 +36,7 @@ public class Planet extends Entity
 		width = size;
 		height = size;
 
-		mass = size;
+		mass = size + 20;
 
 		centerXPosition = xPosition + width / 2;
 		centerYPosition = yPosition + height / 2;
@@ -170,6 +171,20 @@ public class Planet extends Entity
 		moons.add(station);
 	}
 
+	public void addRandomMoons()
+	{
+		Random rand = new Random();
+		
+		int numMoons = rand.nextInt(3);
+
+		for(int i = 0; i < numMoons; i++)
+		{
+			addMoon((50 * (i + 1)) + 50);
+		}
+
+		addSpaceStation(100);
+	}
+	
 	public void importSprite()
 	{
 		try 

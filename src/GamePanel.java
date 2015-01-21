@@ -33,7 +33,9 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	private static int blueScore; //multiplayer only
 	private static int redScore;
-	private static int score; //singleplayer only
+	private static int score;     //singleplayer only
+
+	private static int turnsSinceEnemySpawn;
 
 	public GamePanel(int x, int y)
 	{	
@@ -71,7 +73,7 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 		generateRandomPlanets();
 
-		Ship p1Ship = new Ship(200, panelHeight / 2);
+		Ship p1Ship = new Ship(100, panelHeight / 2);
 		player1Ship = p1Ship;
 		addShip(p1Ship);
 
@@ -79,7 +81,7 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 		if(isMultiplayer)
 		{
-			Ship p2Ship = new Player2Ship(950, panelHeight / 2);
+			Ship p2Ship = new Player2Ship(1050, panelHeight / 2);
 			player2Ship = p2Ship;
 			addShip(p2Ship);
 		}
@@ -111,25 +113,31 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	public static void generateRandomPlanets()
 	{
 		Random rand = new Random();
+		
+		Planet centerPlanet = new Planet((panelWidth / 2) - 50, (panelHeight / 2) - 50);
+
+		centerPlanet.addMoon(100);
+		
+		addPlanet(centerPlanet);
+		centerPlanet.addRandomMoons();
+		
+		int numPlanets = 0;
 
 		for(int r = 0; r < panelHeight; r+= panelHeight / 2)
 		{
-			for(int c = 0; c < panelWidth; c+= panelWidth / 3)
+			for(int c = 0; c < panelWidth; c+= panelWidth / 2)
 			{
 				if(rand.nextBoolean())
 				{
-					Planet randomPlanet = new Planet(c + panelWidth / 6, r + panelHeight / 4);
-
-					int numMoons = rand.nextInt(3) + 1;
-
-					for(int i = 0; i < numMoons; i++)
-					{
-						randomPlanet.addMoon((40 * (i + 1)) + 40);
-					}
-
-					randomPlanet.addSpaceStation(100);
-
+					Planet randomPlanet = new Planet((c + panelWidth / 4) - 50, (r + panelHeight / 4) - 50);
+					
 					addPlanet(randomPlanet);
+					randomPlanet.addRandomMoons();
+					numPlanets++;
+					if(numPlanets >= 2)
+					{
+						return;
+					}
 				}
 			}
 		}
@@ -165,6 +173,8 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	public static void spawnEnemies()
 	{
+		turnsSinceEnemySpawn++;
+
 		int numEnemiesAlive = 0;
 
 		for(Entity e : entities)
@@ -175,13 +185,29 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			}
 		}
 
-		if(numEnemiesAlive == 0)
+		if(turnsSinceEnemySpawn >= 50 && numEnemiesAlive <= score)
 		{
+			turnsSinceEnemySpawn = 0;
+
 			Random rand = new Random();
 
-			for(int i = 0; i < score + 1; i++)
+			int spawnPoint = rand.nextInt(4) + 1;
+
+			if(spawnPoint == 1)
 			{
-				addShip(new AIShip(panelWidth - 40, rand.nextInt(panelHeight)));
+				addShip(new AIShip(panelWidth, rand.nextInt(panelHeight)));
+			}
+			else if(spawnPoint == 2)
+			{
+				addShip(new AIShip(0, rand.nextInt(panelHeight)));
+			}
+			else if(spawnPoint == 3)
+			{
+				addShip(new AIShip(rand.nextInt(panelWidth), 0));
+			}
+			else if(spawnPoint == 4)
+			{
+				addShip(new AIShip(rand.nextInt(panelWidth), panelHeight));
 			}
 		}
 	}
@@ -208,11 +234,41 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			g.drawString("Blue: " + blueScore, 10, 10);
 			g.setColor(Color.RED);
 			g.drawString("Red: " + redScore, panelWidth - 55, 10);
+
+			int p1Health = 0;
+
+			if(player1Ship != null)
+			{
+				p1Health = (int)(player1Ship.getHealth());
+			}
+
+			g.setColor(Color.BLUE);
+			g.fillRect(0, 25, p1Health, 10);
+
+			int p2Health = 0;
+
+			if(player2Ship != null)
+			{
+				p2Health = (int)(player2Ship.getHealth());
+			}
+
+			g.setColor(Color.RED);
+			g.fillRect(panelWidth - p2Health, 25, p2Health, 10);
 		}
 		else
 		{
 			g.setColor(Color.WHITE);
 			g.drawString("Score: " + score, 10, 10);
+
+			int p1Health = 0;
+
+			if(player1Ship != null)
+			{
+				p1Health = (int)(player1Ship.getHealth());
+			}
+
+			g.setColor(Color.RED);
+			g.fillRect((panelWidth / 2) - (p1Health / 2), 5, p1Health, 10);
 		}
 	}
 
@@ -268,7 +324,10 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 		}
 		else if(s instanceof AIShip)
 		{
-			score++;
+			if(player1Ship != null)
+			{
+				score++;
+			}
 		}
 
 		entities.remove(s);
@@ -324,10 +383,15 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	public static void setMultiplayer(boolean b)
 	{
 		isMultiplayer = b;
+
 		if(isMultiplayer)
 		{
 			redScore = 0;
 			blueScore = 0;
+		}
+		else
+		{
+			score = 0;
 		}
 	}
 
