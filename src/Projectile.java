@@ -115,6 +115,11 @@ public class Projectile extends Entity
 		g.fillOval((int)xPosition, (int)yPosition, (int)(width / 2), (int)(height / 2));
 	}
 
+	public void setDamage(double d)
+	{
+		damage = d;
+	}
+	
 	public double getDamage()
 	{
 		return damage;

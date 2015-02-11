@@ -1,5 +1,7 @@
-import java.awt.Graphics;
+ import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 
@@ -130,5 +132,24 @@ public abstract class Entity
 		bounds = new Rectangle ((int)xPosition, (int)yPosition, (int)width, (int)height);
 		
 		return bounds;
+	}
+	
+	public void importSprite(String spritePath)
+	{
+		sprite = SpriteLibrary.getSprite(spritePath);
+		scaleSprite();
+	}
+	
+	public void scaleSprite()
+	{
+		int spriteWidth  = sprite.getWidth();
+		int spriteHeight = sprite.getHeight();
+
+		double scaleX = (double)width / spriteWidth;
+		double scaleY = (double)height / spriteHeight;
+		AffineTransform scaleTransform = AffineTransform.getScaleInstance(scaleX, scaleY);
+		AffineTransformOp bilinearScaleOp = new AffineTransformOp(scaleTransform, AffineTransformOp.TYPE_BILINEAR);
+
+		sprite = bilinearScaleOp.filter(sprite, new BufferedImage((int)width, (int)height, sprite.getType()));
 	}
 }

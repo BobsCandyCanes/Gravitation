@@ -47,12 +47,14 @@ public class Player2Ship extends Ship
 	{
 		try 
 		{
-			sprite = ImageIO.read(new File("Images/enemyShip.png"));  //import the sprite
+			sprite = ImageIO.read(new File("Images/shipReversed.png"));  //import the sprite
 		}
 		catch (IOException e) 
 		{
-			System.out.println("Error loading sprite: enemyShip");
+			System.out.println("Error loading sprite: shipReversed");
 			e.printStackTrace();
 		}
+		
+		scaleSprite();
 	}
 }

@@ -10,16 +10,19 @@ public class Gravity
 
 	private static JFrame mainWindow = new JFrame("Gravity");
 
-	private static GamePanel gamePanel;
-	private static MainMenu mainMenu;
+	private static MainPanel mainPanel;
 
+	private static String previousState;
 	private static String state = "mainMenu";
 
-	private static int windowWidth = 1200;
-	private static int windowHeight = 600;
+	private static int windowWidth = 1300;
+	private static int windowHeight = 700;
 
 	public static void main(String[] args) 
-	{	
+	{
+		SpriteLibrary.importAllSprites();
+		ProfileManager.initializeProfiles();
+		
 		initializeWindow();
 		initializePanel();
 	}
@@ -36,39 +39,38 @@ public class Gravity
 
 	public static void setState(String newState)
 	{
+		previousState = state;
 		state = newState;
 		initializePanel();
 	}
 
 	public static void initializePanel()	//Creates a new GamePanel
 	{
+		if(mainPanel != null)
+		{
+			mainPanel.stop();
+			mainWindow.remove(mainPanel);
+		}
 		if(state.equals("mainMenu"))
 		{
-			if(gamePanel != null)
-			{
-				gamePanel.stop();
-				mainWindow.remove(gamePanel);
-			}
-			mainMenu = new MainMenu(windowWidth, windowHeight);
-			mainWindow.add(mainMenu);
-			mainMenu.run();
-			mainWindow.add(mainMenu, BorderLayout.CENTER);
-			mainWindow.pack();
+			mainPanel = new MainMenu(windowWidth, windowHeight);
 		}
 		else if(state.equals("gameRunning"))
 		{
-			if(mainMenu != null)
-			{
-				mainMenu.stop();
-				mainWindow.remove(mainMenu);
-			}
-			gamePanel = new GamePanel(windowWidth, windowHeight);
-			mainWindow.add(gamePanel);
-			gamePanel.run();
-			mainWindow.add(gamePanel, BorderLayout.CENTER);
-			mainWindow.pack();
+			mainPanel = new GamePanel(windowWidth, windowHeight);
+		}
+		else if(state.equals("gameOverMenu"))
+		{
+			mainPanel = new GameOverMenu(windowWidth, windowHeight);
+		}
+		else if(state.equals("shipMenu"))
+		{
+			mainPanel = new ShipMenu(windowWidth, windowHeight, previousState);
 		}
 
+		mainWindow.add(mainPanel);
+		mainPanel.run();
+		mainWindow.add(mainPanel, BorderLayout.CENTER);
 		mainWindow.pack();
 	}
 }

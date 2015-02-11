@@ -1,14 +1,12 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 
 public class Moon extends Planet
 {	
+	private static final int DEFAULT_SIZE = 28;
+	
 	private double locationInOrbit;
 	
 	private double speed;
@@ -16,8 +14,6 @@ public class Moon extends Planet
 	private double radiusFromPlanet;
 	
 	private Planet parentPlanet;
-	
-	private int defaultSize = 20;
 
 	public Moon(double r, Planet p)
 	{	
@@ -28,10 +24,10 @@ public class Moon extends Planet
 		centerXPosition = parentPlanet.centerXPosition + radiusFromPlanet;
 		centerYPosition = parentPlanet.centerYPosition;
 
-		width = defaultSize;
-		height = defaultSize;
+		width = DEFAULT_SIZE;
+		height = DEFAULT_SIZE;
 		
-		mass = defaultSize; 
+		mass = width; 
 		
 		xPosition = centerXPosition - width / 2;
 		yPosition = centerYPosition - height / 2;
@@ -40,12 +36,12 @@ public class Moon extends Planet
 		
 		locationInOrbit = Math.random() * (2 * Math.PI);
 		
-		importSprite();
+		importSprite("moon.png");
 	}
 	
 	public void act()
 	{
-		speed = (1 / radiusFromPlanet) / 2;
+		speed = (1 / radiusFromPlanet) / 2.5;
 		
 		locationInOrbit += speed;
 		
@@ -84,17 +80,4 @@ public class Moon extends Planet
 		
 		bounds = new Rectangle ((int)xPosition, (int)yPosition, (int)width, (int)height);
 	}	
-	
-	public void importSprite()
-	{
-		try 
-		{
-			sprite = ImageIO.read(new File("Images/moon.png"));  //import the sprite
-		}
-		catch (IOException e) 
-		{
-			System.out.println("Error loading sprite: moon");
-			e.printStackTrace();
-		}
-	}
 }

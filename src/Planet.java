@@ -1,21 +1,17 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-
-import javax.imageio.ImageIO;
 
 
 public class Planet extends Entity
 {
+	private static final int DEFAULT_SIZE = 140;
+	
 	protected int radiusOfGravity;
 
 	private ArrayList<Moon> moons = new ArrayList<Moon>();
-
-	private String spritePath;
 
 	private double rotationSpeed;
 
@@ -25,7 +21,7 @@ public class Planet extends Entity
 
 	public Planet(int x, int y)
 	{
-		this(x, y, 100);
+		this(x, y, DEFAULT_SIZE);
 	}
 
 	public Planet(int x, int y, int size)
@@ -45,27 +41,27 @@ public class Planet extends Entity
 
 		chooseRandomSprite();
 		chooseRandomRotationSpeed();
-
-		importSprite();
 	}
 
 	public void chooseRandomSprite()
 	{
-		int rand = (int)(Math.random() * 2) + 1;
+		Random rand = new Random();
+		
+		int randInt = rand.nextInt(2);
 
-		if(rand == 1)
+		if(randInt == 0)
 		{
-			spritePath = "Images/planet1.png";
+			importSprite("planet1.png");
 		}
 		else
 		{
-			spritePath = "Images/planet2.png";
+			importSprite("planet2.png");
 		}
 	}
 
 	public void chooseRandomRotationSpeed()
 	{
-		rotationSpeed = (Math.random() * 0.4) + 0.1;
+		rotationSpeed = (Math.random() * 0.25) + 0.05;
 
 		boolean counterClockwise = (Math.random() < 0.5); //random boolean
 
@@ -89,39 +85,37 @@ public class Planet extends Entity
 		{
 			Entity e = entities.get(i);
 
-			if(e instanceof Projectile)
+			if(e instanceof Projectile || e instanceof Ship)
 			{
-				Projectile p = (Projectile)e;
-				
-				if(!(p instanceof Beam))
+				if(!(e instanceof Beam))
 				{
-					double distanceFromProjectile = Math.abs(getDistanceFrom(p));
+					double distanceFromProjectile = Math.abs(getDistanceFrom(e));
 
 					if((distanceFromProjectile <= radiusOfGravity))
 					{
-						double xDiff = getXDistanceFrom(p);
-						double yDiff = getYDistanceFrom(p);
+						double xDiff = getXDistanceFrom(e);
+						double yDiff = getYDistanceFrom(e);
 
 						// F = G * ((m1 * m2) / (r^2))
 
-						double gravitationalForce = 7 * (mass * p.getMass()) / (distanceFromProjectile * distanceFromProjectile);
+						double gravitationalForce = 9 * (mass * e.getMass()) / (distanceFromProjectile * distanceFromProjectile);
 
 						if(xDiff > 0)
 						{
-							p.setXVelocity(p.getXVelocity() - gravitationalForce);
+							e.setXVelocity(e.getXVelocity() - gravitationalForce);
 						}
 						else if(xDiff < 0)
 						{
-							p.setXVelocity(p.getXVelocity() + gravitationalForce);
+							e.setXVelocity(e.getXVelocity() + gravitationalForce);
 						}
 
 						if(yDiff > 0)
 						{
-							p.setYVelocity(p.getYVelocity() - gravitationalForce);
+							e.setYVelocity(e.getYVelocity() - gravitationalForce);
 						}
 						else if(yDiff < 0)
 						{
-							p.setYVelocity(p.getYVelocity() + gravitationalForce);
+							e.setYVelocity(e.getYVelocity() + gravitationalForce);
 						}
 					}
 				}
@@ -153,20 +147,11 @@ public class Planet extends Entity
 		g2d.rotate(Math.toRadians(angleInDegrees), centerXPosition, centerYPosition);
 	}
 
-	public void addMoon(double orbitRadius)
-	{
-		Moon moon = new Moon(orbitRadius, this);
-
-		GamePanel.addPlanet(moon);
-
-		moons.add(moon);
-	}
-
 	public void addSpaceStation(double orbitRadius)
 	{
 		SpaceStation station = new SpaceStation(orbitRadius, this);
 
-		GamePanel.addPlanet(station);
+		GamePanel.addEntity(station);
 
 		moons.add(station);
 	}
@@ -175,26 +160,27 @@ public class Planet extends Entity
 	{
 		Random rand = new Random();
 		
-		int numMoons = rand.nextInt(3);
+		int numMoons = rand.nextInt(4) + 1;
 
 		for(int i = 0; i < numMoons; i++)
 		{
-			addMoon((50 * (i + 1)) + 50);
+			addMoon((width / 3) * i + width);
 		}
 
-		addSpaceStation(100);
+		addSpaceStation(width + 30);
+	}
+
+	public void addMoon(double orbitRadius)
+	{
+		Moon moon = new Moon(orbitRadius, this);
+
+		GamePanel.addEntity(moon);
+
+		moons.add(moon);
 	}
 	
-	public void importSprite()
+	public static int getDefaultSize()
 	{
-		try 
-		{
-			sprite = ImageIO.read(new File(spritePath));  //import the sprite
-		}
-		catch (IOException e) 
-		{
-			System.out.println("Error loading sprite: " + spritePath);
-			e.printStackTrace();
-		}
+		return DEFAULT_SIZE;
 	}
 }

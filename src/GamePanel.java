@@ -1,24 +1,17 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.swing.JPanel;
 import javax.swing.Timer;
 
-public class GamePanel extends JPanel implements ActionListener, Runnable
+public class GamePanel extends MainPanel implements ActionListener, Runnable
 {
 	private static final long serialVersionUID = 1L;
-
-	private Graphics g;
-
-	private static int panelWidth;
-	private static int panelHeight;
-
-	private static Timer timer;
 
 	private static ArrayList<Entity> entities = new ArrayList<Entity>();
 
@@ -37,10 +30,14 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 
 	private static int turnsSinceEnemySpawn;
 
+	private static boolean gameOver;
+
 	public GamePanel(int x, int y)
 	{	
 		panelWidth = x;
 		panelHeight = y;
+
+		gameOver = false;
 
 		setPreferredSize(new Dimension(panelWidth, panelHeight));
 
@@ -105,22 +102,24 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 		Planet rightPlanet = new Planet(1025, panelHeight / 2 - 40);
 		rightPlanet.addMoon(80);
 
-		addPlanet(centerPlanet);
-		addPlanet(leftPlanet);
-		addPlanet(rightPlanet);
+		addEntity(centerPlanet);
+		addEntity(leftPlanet);
+		addEntity(rightPlanet);
 	}
 
 	public static void generateRandomPlanets()
 	{
 		Random rand = new Random();
-		
+
+		/*
 		Planet centerPlanet = new Planet((panelWidth / 2) - 50, (panelHeight / 2) - 50);
 
-		centerPlanet.addMoon(100);
-		
-		addPlanet(centerPlanet);
+		centerPlanet.addMoon(120);
+
+		addEntity(centerPlanet);
 		centerPlanet.addRandomMoons();
-		
+		 */
+
 		int numPlanets = 0;
 
 		for(int r = 0; r < panelHeight; r+= panelHeight / 2)
@@ -130,8 +129,8 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 				if(rand.nextBoolean())
 				{
 					Planet randomPlanet = new Planet((c + panelWidth / 4) - 50, (r + panelHeight / 4) - 50);
-					
-					addPlanet(randomPlanet);
+
+					addEntity(randomPlanet);
 					randomPlanet.addRandomMoons();
 					numPlanets++;
 					if(numPlanets >= 2)
@@ -163,9 +162,28 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			generateAsteroids();
 		}
 
-		if(!isMultiplayer)
+		if(!isMultiplayer && !gameOver)
 		{
 			spawnEnemies();
+		}
+
+		if(gameOver)
+		{
+			if(score > ProfileManager.getHighScore())
+			{
+				ProfileManager.setHighScore(score);
+			}
+
+			try
+			{
+				Thread.sleep(500);
+			} 
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+
+			Gravity.setState("gameOverMenu");
 		}
 
 		this.repaint(); 
@@ -176,20 +194,27 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 		turnsSinceEnemySpawn++;
 
 		int numEnemiesAlive = 0;
+		int numCarriers = 0;
+
+		Random rand = new Random();
+
 
 		for(Entity e : entities)
 		{
 			if(e instanceof AIShip)
 			{
 				numEnemiesAlive++;
+
+				if(e instanceof AICarrier)
+				{
+					numCarriers++;
+				}
 			}
 		}
 
-		if(turnsSinceEnemySpawn >= 50 && numEnemiesAlive <= score)
+		if(turnsSinceEnemySpawn >= 30 && numEnemiesAlive <= score)
 		{
 			turnsSinceEnemySpawn = 0;
-
-			Random rand = new Random();
 
 			int spawnPoint = rand.nextInt(4) + 1;
 
@@ -210,6 +235,16 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 				addShip(new AIShip(rand.nextInt(panelWidth), panelHeight));
 			}
 		}
+
+
+		if(score != 0 && score % 10 == 0)
+		{
+			if(numCarriers <= score / 15)
+			{
+				addShip(new AICarrier(rand.nextInt(panelWidth), panelHeight));
+			}
+		}
+
 	}
 
 	public void paintComponent(Graphics g)
@@ -230,10 +265,11 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	{
 		if(isMultiplayer)
 		{
+			g.setFont(new Font("LucidaTypewriter", Font.ITALIC, 18));
 			g.setColor(Color.BLUE);
-			g.drawString("Blue: " + blueScore, 10, 10);
+			g.drawString("Blue: " + blueScore, 10, 20);
 			g.setColor(Color.RED);
-			g.drawString("Red: " + redScore, panelWidth - 55, 10);
+			g.drawString("Red: " + redScore, panelWidth - 70, 20);
 
 			int p1Health = 0;
 
@@ -243,7 +279,7 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			}
 
 			g.setColor(Color.BLUE);
-			g.fillRect(0, 25, p1Health, 10);
+			g.fillRect(0, 30, (int)(p1Health * 1.5), 15);
 
 			int p2Health = 0;
 
@@ -253,7 +289,7 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			}
 
 			g.setColor(Color.RED);
-			g.fillRect(panelWidth - p2Health, 25, p2Health, 10);
+			g.fillRect((int)(panelWidth - p2Health * 1.5), 30, (int)(p2Health * 1.5), 15);
 		}
 		else
 		{
@@ -312,6 +348,10 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 			{
 				redScore++;
 			}
+			else
+			{
+				gameOver = true;
+			}
 			player1Ship = null;
 		}
 		else if(s.equals(player2Ship))
@@ -326,16 +366,38 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 		{
 			if(player1Ship != null)
 			{
-				score++;
+				if(s instanceof AICarrier)
+				{
+					score += 5;
+				}
+				else
+				{
+					score++;
+				}
 			}
 		}
 
 		entities.remove(s);
 	}
 
-	public void stop()
+	public static void setMultiplayer(boolean b)
 	{
-		timer.stop();
+		isMultiplayer = b;
+
+		if(isMultiplayer)
+		{
+			redScore = 0;
+			blueScore = 0;
+		}
+		else
+		{
+			score = 0;
+		}
+	}
+
+	public static boolean isMultiplayer()
+	{
+		return isMultiplayer;
 	}
 
 	public static void toggleAsteroids()
@@ -348,11 +410,6 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 		{
 			asteroids = true;
 		}
-	}
-
-	public static void addPlanet(Planet p)
-	{
-		entities.add(p);
 	}
 
 	public static ArrayList<Entity> getEntities()
@@ -379,24 +436,9 @@ public class GamePanel extends JPanel implements ActionListener, Runnable
 	{
 		return panelHeight;
 	}
-
-	public static void setMultiplayer(boolean b)
+	
+	public static int getScore()
 	{
-		isMultiplayer = b;
-
-		if(isMultiplayer)
-		{
-			redScore = 0;
-			blueScore = 0;
-		}
-		else
-		{
-			score = 0;
-		}
-	}
-
-	public static boolean isMultiplayer()
-	{
-		return isMultiplayer;
+		return score;
 	}
 }

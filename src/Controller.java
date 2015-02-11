@@ -49,17 +49,17 @@ public class Controller implements KeyListener
 		if(player1 != null)
 		{
 			if(keys[W]) { player1.moveShip("forward", shipSpeed);  }
-			if(keys[S]) { player1.moveShip("backward", shipSpeed); }
+			if(keys[S]) { player1.moveShip("backward", shipSpeed * 0.8); }
 			if(keys[A]) { player1.rotate(4);  }
 			if(keys[D]) { player1.rotate(-4);   }
 
 			if(keys[SPACE]) { player1.shoot(); }
 		}
 		
-		if(GamePanel.isMultiplayer() && player2 != null)
+		if(player2 != null)
 		{
 			if(keys[DOWN])  { player2.moveShip("forward", shipSpeed);  }
-			if(keys[UP])    { player2.moveShip("backward", shipSpeed); }
+			if(keys[UP])    { player2.moveShip("backward", shipSpeed * 0.8); }
 			if(keys[LEFT])  { player2.rotate(4);  }
 			if(keys[RIGHT]) { player2.rotate(-4);   }
 
