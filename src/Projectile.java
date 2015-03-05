@@ -32,7 +32,7 @@ public class Projectile extends Entity
 
 		mass = 10;
 
-		damage = 10;
+		damage = 12;
 
 		centerXPosition = xPosition + width / 2;
 		centerYPosition = yPosition + height / 2;

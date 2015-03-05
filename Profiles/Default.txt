@@ -1,0 +1,7 @@
+Default
+High Score: 30035
+Experience: 3753
+Max Health: 120.0
+Health Regen: 0.2
+Max Speed: 4.0
+Armor Value: 5.0

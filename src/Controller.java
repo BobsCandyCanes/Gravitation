@@ -4,6 +4,10 @@ import java.awt.event.KeyListener;
 
 public class Controller implements KeyListener
 {
+	private static final double ONE_DEGREE_IN_RADIANS = 0.0175;
+
+	private static double TURN_SPEED = ONE_DEGREE_IN_RADIANS * 4;
+
 	boolean[] keys = new boolean[255];
 
 	final int shipSpeed = 1;
@@ -19,7 +23,7 @@ public class Controller implements KeyListener
 	final int S = 83;
 	final int D = 68;
 	final int SPACE = 32;
-	
+
 	final int O = 79;
 
 	final int ENTER = 10;
@@ -42,7 +46,7 @@ public class Controller implements KeyListener
 
 	public void update() //Call this function from your main method to actually look at the keys
 	{	
-		
+
 		Ship player1 = GamePanel.getPlayer1Ship();
 		Ship player2 = GamePanel.getPlayer2Ship();
 
@@ -50,28 +54,35 @@ public class Controller implements KeyListener
 		{
 			if(keys[W]) { player1.moveShip("forward", shipSpeed);  }
 			if(keys[S]) { player1.moveShip("backward", shipSpeed * 0.8); }
-			if(keys[A]) { player1.rotate(4);  }
-			if(keys[D]) { player1.rotate(-4);   }
+			if(keys[A]) { player1.rotate(TURN_SPEED);  }
+			if(keys[D]) { player1.rotate(-TURN_SPEED);   }
 
 			if(keys[SPACE]) { player1.shoot(); }
 		}
-		
+
 		if(player2 != null)
 		{
 			if(keys[DOWN])  { player2.moveShip("forward", shipSpeed);  }
 			if(keys[UP])    { player2.moveShip("backward", shipSpeed * 0.8); }
-			if(keys[LEFT])  { player2.rotate(4);  }
-			if(keys[RIGHT]) { player2.rotate(-4);   }
+			if(keys[LEFT])  { player2.rotate(TURN_SPEED);  }
+			if(keys[RIGHT]) { player2.rotate(-TURN_SPEED);   }
 
 			if(keys[SHIFT]) { player2.shoot(); }
 		}
 
 		if(keys[ENTER])  
 		{ 
-			GamePanel.resetWorld(); 
-			slightPause();
+			if(Gravity.getState().equals("gameRunning"))
+			{
+				GamePanel.resetWorld(); 
+				slightPause();
+			}
+			else if(Gravity.getState().equals("gameOver"))
+			{
+				Gravity.setState("gameRunning");
+			}
 		}
-		
+
 		if(keys[O])
 		{
 			GamePanel.toggleAsteroids();
@@ -80,7 +91,7 @@ public class Controller implements KeyListener
 
 		if(keys[ESCAPE]) { Gravity.setState("mainMenu"); }
 	}
-	
+
 	public void slightPause()
 	{
 		try

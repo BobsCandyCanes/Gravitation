@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -9,7 +8,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -26,9 +24,9 @@ public class GameOverMenu extends MainMenu implements ActionListener
 	private static JPanel topPanel;
 	private static JPanel buttonPanel;
 
-	private JButton retry = new JButton("Retry");
-	private JButton shipMenu = new JButton("Ship");
-	private JButton mainMenu = new JButton("Main Menu");
+	private GameButton retry;
+	private GameButton shipMenu;
+	private GameButton mainMenu;
 
 	private int stepCounter = 0;
 	private int experienceAdded = 0;
@@ -72,13 +70,9 @@ public class GameOverMenu extends MainMenu implements ActionListener
 
 	public void initializeButtons()
 	{
-		retry.setAlignmentX(Component.CENTER_ALIGNMENT);
-		shipMenu.setAlignmentX(Component.CENTER_ALIGNMENT);
-		mainMenu.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		setButtonLook(retry, "menuButton.png");
-		setButtonLook(shipMenu, "menuButton.png");
-		setButtonLook(mainMenu, "menuButton.png");
+		retry = new GameButton("Retry", "menuButton.png", (int)buttonWidth, (int)buttonHeight);
+		shipMenu = new GameButton("Upgrades", "menuButton.png", (int)buttonWidth, (int)buttonHeight);
+		mainMenu = new GameButton("Main Menu", "menuButton.png", (int)buttonWidth, (int)buttonHeight);
 
 		retry.addActionListener(new ActionListener()
 		{
@@ -99,7 +93,7 @@ public class GameOverMenu extends MainMenu implements ActionListener
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				Gravity.setState("shipMenu");
+				Gravity.setState("upgradeMenu");
 			}
 		});
 

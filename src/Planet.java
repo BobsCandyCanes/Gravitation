@@ -1,6 +1,9 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RadialGradientPaint;
+import java.awt.MultipleGradientPaint.CycleMethod;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,7 +11,7 @@ import java.util.Random;
 public class Planet extends Entity
 {
 	private static final int DEFAULT_SIZE = 140;
-	
+
 	protected int radiusOfGravity;
 
 	private ArrayList<Moon> moons = new ArrayList<Moon>();
@@ -32,7 +35,7 @@ public class Planet extends Entity
 		width = size;
 		height = size;
 
-		mass = size + 20;
+		mass = size + 40;
 
 		centerXPosition = xPosition + width / 2;
 		centerYPosition = yPosition + height / 2;
@@ -46,16 +49,24 @@ public class Planet extends Entity
 	public void chooseRandomSprite()
 	{
 		Random rand = new Random();
-		
-		int randInt = rand.nextInt(2);
+
+		int randInt = rand.nextInt(4);
 
 		if(randInt == 0)
 		{
 			importSprite("planet1.png");
 		}
-		else
+		else if(randInt == 1)
 		{
 			importSprite("planet2.png");
+		}
+		else if(randInt == 2)
+		{
+			importSprite("planet3.png");
+		}
+		else
+		{
+			importSprite("planet4.png");
 		}
 	}
 
@@ -87,36 +98,33 @@ public class Planet extends Entity
 
 			if(e instanceof Projectile || e instanceof Ship)
 			{
-				if(!(e instanceof Beam))
+				double distanceFromProjectile = Math.abs(getDistanceFrom(e));
+
+				if((distanceFromProjectile <= radiusOfGravity))
 				{
-					double distanceFromProjectile = Math.abs(getDistanceFrom(e));
+					double xDiff = getXDistanceFrom(e);
+					double yDiff = getYDistanceFrom(e);
 
-					if((distanceFromProjectile <= radiusOfGravity))
+					// F = G * ((m1 * m2) / (r^2))
+
+					double gravitationalForce = 9 * (mass * e.getMass()) / (distanceFromProjectile * distanceFromProjectile);
+
+					if(xDiff > 0)
 					{
-						double xDiff = getXDistanceFrom(e);
-						double yDiff = getYDistanceFrom(e);
+						e.setXVelocity(e.getXVelocity() - gravitationalForce);
+					}
+					else if(xDiff < 0)
+					{
+						e.setXVelocity(e.getXVelocity() + gravitationalForce);
+					}
 
-						// F = G * ((m1 * m2) / (r^2))
-
-						double gravitationalForce = 9 * (mass * e.getMass()) / (distanceFromProjectile * distanceFromProjectile);
-
-						if(xDiff > 0)
-						{
-							e.setXVelocity(e.getXVelocity() - gravitationalForce);
-						}
-						else if(xDiff < 0)
-						{
-							e.setXVelocity(e.getXVelocity() + gravitationalForce);
-						}
-
-						if(yDiff > 0)
-						{
-							e.setYVelocity(e.getYVelocity() - gravitationalForce);
-						}
-						else if(yDiff < 0)
-						{
-							e.setYVelocity(e.getYVelocity() + gravitationalForce);
-						}
+					if(yDiff > 0)
+					{
+						e.setYVelocity(e.getYVelocity() - gravitationalForce);
+					}
+					else if(yDiff < 0)
+					{
+						e.setYVelocity(e.getYVelocity() + gravitationalForce);
 					}
 				}
 			}
@@ -141,12 +149,12 @@ public class Planet extends Entity
 
 		g2d.drawImage(sprite, (int)xPosition, (int)yPosition, null);
 
-		g.setColor(Color.BLACK);
-		g.drawOval((int)xPosition, (int)yPosition, (int)width, (int)height);
+		g2d.setColor(Color.BLACK);
+		g2d.drawOval((int)xPosition, (int)yPosition, (int)width, (int)height);
 
 		g2d.rotate(Math.toRadians(angleInDegrees), centerXPosition, centerYPosition);
 	}
-
+	
 	public void addSpaceStation(double orbitRadius)
 	{
 		SpaceStation station = new SpaceStation(orbitRadius, this);
@@ -159,8 +167,8 @@ public class Planet extends Entity
 	public void addRandomMoons()
 	{
 		Random rand = new Random();
-		
-		int numMoons = rand.nextInt(4) + 1;
+
+		int numMoons = rand.nextInt(3) + 1;
 
 		for(int i = 0; i < numMoons; i++)
 		{
@@ -178,7 +186,7 @@ public class Planet extends Entity
 
 		moons.add(moon);
 	}
-	
+
 	public static int getDefaultSize()
 	{
 		return DEFAULT_SIZE;

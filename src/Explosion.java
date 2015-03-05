@@ -1,9 +1,10 @@
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 public class Explosion extends Entity
 {
-	private int age = 0;	//the number of steps the object has existed
+	private int age = 1;	    //the number of steps the object has existed
 	
 	private double maxRadius;	//maximum size of the explosion
 	
@@ -15,7 +16,9 @@ public class Explosion extends Entity
 		centerYPosition = y;
 		
 		xPosition = x - maxRadius / 2;
-		yPosition = y - r / 2;
+		yPosition = y - maxRadius / 2;
+		
+		sprite = SpriteLibrary.getSprite("explosion.png");
 	}
 	
 	public void act()
@@ -30,26 +33,33 @@ public class Explosion extends Entity
 	
 	public void draw(Graphics g)
 	{
-		g.setColor(Color.RED);
+		Graphics2D g2d = (Graphics2D) g;
 		
-		double currentRadius = age; 
 		
-		xPosition = centerXPosition - currentRadius / 2;
-		yPosition = centerYPosition - currentRadius / 2;
+		//Draw smaller circles first
 		
-		g.fillOval((int)xPosition, (int)yPosition, (int)currentRadius, (int)currentRadius);
+		g2d.setColor(Color.red.brighter());
 		
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 3; i++)	
 		{	
-			g.setColor(Color.ORANGE);
-			
 			int size = (int)(Math.random() * maxRadius / 2);
 
 			int xVal = (int)xPosition - (int)(maxRadius / 2) + (int)(Math.random() * (2 * maxRadius));
 			int yVal = (int)yPosition - (int)(maxRadius / 2) + (int)(Math.random() * (2 * maxRadius));
-			
-			g.fillOval(xVal, yVal, size, size);
+
+			g2d.fillOval(xVal, yVal, size, size);
 		}
+		
+		//Then draw the big circle
+		
+		double currentRadius = (age * age) / 15; 
+		
+	
+		//top left point of the big circle
+		double xPos = centerXPosition - currentRadius / 2;
+		double yPos = centerYPosition - currentRadius / 2;
+
+		g2d.drawImage(sprite, (int)xPos, (int)yPos, (int)currentRadius, (int)currentRadius, null);
 	}
 	
 	public void destroy()

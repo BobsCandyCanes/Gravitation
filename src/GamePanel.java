@@ -2,38 +2,46 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
 public class GamePanel extends MainPanel implements ActionListener, Runnable
 {
+	private final double FRAMERATE = 50;
+
 	private static final long serialVersionUID = 1L;
 
 	private static ArrayList<Entity> entities = new ArrayList<Entity>();
-
-	private Controller controller;
 
 	private static Ship player1Ship;
 	private static Ship player2Ship;
 
 	private static boolean asteroids;
-
+	private static boolean gameOver;
 	private static boolean isMultiplayer = true;
 
 	private static int blueScore; //multiplayer only
 	private static int redScore;
 	private static int score;     //singleplayer only
 
+	private static int numShips;
 	private static int turnsSinceEnemySpawn;
+	private static int scoreAtLastGunship;
+	private static int enemySpawnDelay = 10;
 
-	private static boolean gameOver;
+	private Controller controller;
+
+	private BufferedImage background;
 
 	public GamePanel(int x, int y)
-	{	
+	{			
 		panelWidth = x;
 		panelHeight = y;
 
@@ -46,6 +54,9 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 		controller = new Controller();
 
 		addKeyListener(controller);
+
+		background = SpriteLibrary.getSprite("background.png");
+		background = SpriteLibrary.scaleSprite(background, panelWidth, panelHeight);
 	}
 
 	public void run()
@@ -58,7 +69,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 		paint(g);
 
-		timer = new Timer(20, this);
+		timer = new Timer((int)(1000 / FRAMERATE), this);
 		timer.setInitialDelay(0);
 
 		timer.start();
@@ -68,19 +79,20 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	{
 		entities = new ArrayList<Entity>();
 
+		score = 0;
+		numShips = 0;
+		
 		generateRandomPlanets();
 
 		Ship p1Ship = new Ship(100, panelHeight / 2);
 		player1Ship = p1Ship;
-		addShip(p1Ship);
-
-		score = 0;
+		addEntity(p1Ship);
 
 		if(isMultiplayer)
 		{
 			Ship p2Ship = new Player2Ship(1050, panelHeight / 2);
 			player2Ship = p2Ship;
-			addShip(p2Ship);
+			addEntity(p2Ship);
 		}
 		else
 		{
@@ -111,34 +123,34 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	{
 		Random rand = new Random();
 
-		/*
-		Planet centerPlanet = new Planet((panelWidth / 2) - 50, (panelHeight / 2) - 50);
-
-		centerPlanet.addMoon(120);
-
-		addEntity(centerPlanet);
-		centerPlanet.addRandomMoons();
-		 */
-
 		int numPlanets = 0;
 
 		for(int r = 0; r < panelHeight; r+= panelHeight / 2)
 		{
 			for(int c = 0; c < panelWidth; c+= panelWidth / 2)
 			{
-				if(rand.nextBoolean())
+				if(numPlanets < 2 && rand.nextBoolean())
 				{
-					Planet randomPlanet = new Planet((c + panelWidth / 4) - 50, (r + panelHeight / 4) - 50);
+					int xPos = (c + panelWidth / 4) - Planet.getDefaultSize() / 2;
+					int yPos = (r + panelHeight / 4) - Planet.getDefaultSize() / 2;
+
+					Planet randomPlanet = new Planet(xPos, yPos);
 
 					addEntity(randomPlanet);
 					randomPlanet.addRandomMoons();
 					numPlanets++;
-					if(numPlanets >= 2)
-					{
-						return;
-					}
 				}
 			}
+		}
+
+		if(numPlanets == 0)
+		{
+			int xPos = panelWidth / 2 - Planet.getDefaultSize() / 2;
+			int yPos = panelHeight / 2 - Planet.getDefaultSize() / 2;
+
+			Planet centerPlanet = new Planet(xPos, yPos);
+			centerPlanet.addRandomMoons();
+			addEntity(centerPlanet);
 		}
 	}
 
@@ -146,73 +158,66 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	{   
 		this.requestFocus();
 
-		controller.update();
-
-		for(int i = 0; i < entities.size(); i++)
-		{
-			Entity e = entities.get(i);
-
-			e.act();
-		}
-
-		if(asteroids)
-		{
-			generateAsteroids();
-			generateAsteroids();
-			generateAsteroids();
-		}
-
-		if(!isMultiplayer && !gameOver)
-		{
-			spawnEnemies();
-		}
-
-		if(gameOver)
-		{
-			if(score > ProfileManager.getHighScore())
+		final SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() 
+				{
+			protected Void doInBackground() throws Exception
 			{
-				ProfileManager.setHighScore(score);
+				controller.update();
+
+				for(int i = 0; i < entities.size(); i++)
+				{
+					Entity e = entities.get(i);
+
+					e.act();
+				}
+
+				if(asteroids)
+				{
+					generateAsteroids();
+					generateAsteroids();
+					generateAsteroids();
+				}
+
+				if(!isMultiplayer && !gameOver)
+				{
+					spawnEnemies();
+				}
+				
+				return null;
 			}
+				};
+				worker.execute(); 
 
-			try
-			{
-				Thread.sleep(500);
-			} 
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
+				//Moved this out of the swingworker due to weird concurrency issues
+				if(gameOver)
+				{
+					if(score > ProfileManager.getHighScore())
+					{
+						ProfileManager.setHighScore(score);
+					}
 
-			Gravity.setState("gameOverMenu");
-		}
+					try
+					{
+						Thread.sleep(500);
+					} 
+					catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
 
-		this.repaint(); 
+					Gravity.setState("gameOver");
+				}
+				
+				repaint();
 	}
 
 	public static void spawnEnemies()
 	{
 		turnsSinceEnemySpawn++;
 
-		int numEnemiesAlive = 0;
-		int numCarriers = 0;
-
 		Random rand = new Random();
 
-
-		for(Entity e : entities)
-		{
-			if(e instanceof AIShip)
-			{
-				numEnemiesAlive++;
-
-				if(e instanceof AICarrier)
-				{
-					numCarriers++;
-				}
-			}
-		}
-
-		if(turnsSinceEnemySpawn >= 30 && numEnemiesAlive <= score)
+		if(numShips - 1 <= score && turnsSinceEnemySpawn >= enemySpawnDelay)
 		{
 			turnsSinceEnemySpawn = 0;
 
@@ -220,28 +225,29 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 			if(spawnPoint == 1)
 			{
-				addShip(new AIShip(panelWidth, rand.nextInt(panelHeight)));
+				addEntity(new AIShip(panelWidth, rand.nextInt(panelHeight)));
 			}
 			else if(spawnPoint == 2)
 			{
-				addShip(new AIShip(0, rand.nextInt(panelHeight)));
+				addEntity(new AIShip(0, rand.nextInt(panelHeight)));
 			}
 			else if(spawnPoint == 3)
 			{
-				addShip(new AIShip(rand.nextInt(panelWidth), 0));
+				addEntity(new AIShip(rand.nextInt(panelWidth), 0));
 			}
 			else if(spawnPoint == 4)
 			{
-				addShip(new AIShip(rand.nextInt(panelWidth), panelHeight));
+				addEntity(new AIShip(rand.nextInt(panelWidth), panelHeight));
 			}
 		}
 
 
-		if(score != 0 && score % 10 == 0)
+		if(score != 0 && score % 15 == 0)
 		{
-			if(numCarriers <= score / 15)
+			if(score != scoreAtLastGunship)
 			{
-				addShip(new AICarrier(rand.nextInt(panelWidth), panelHeight));
+				scoreAtLastGunship = score;
+				addEntity(new AIGunship(rand.nextInt(panelWidth), panelHeight));
 			}
 		}
 
@@ -250,15 +256,19 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	public void paintComponent(Graphics g)
 	{
 		super.paintComponent(g);
+		
+		Graphics2D g2d = (Graphics2D)g;
+
+		g.drawImage(background, 0, 0, null);
 
 		for(int i = 0; i < entities.size(); i++)
 		{
 			Entity e = entities.get(i);
 
-			e.draw(g);
+			e.draw(g2d);
 		}
 
-		drawHUD(g);
+		drawHUD(g2d);
 	}
 
 	public void drawHUD(Graphics g)
@@ -327,57 +337,57 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 	public static void addEntity(Entity e)
 	{
+		if(e instanceof Ship)
+		{
+			numShips++;
+		}
+		
 		entities.add(e);
 	}
 
 	public static void removeEntity(Entity e)
 	{
-		entities.remove(e);
-	}
-
-	public static void addShip(Ship s)
-	{
-		entities.add(s);
-	}
-
-	public static void removeShip(Ship s)
-	{
-		if(s.equals(player1Ship))
+		if(e instanceof Ship)
 		{
-			if(isMultiplayer)
+			numShips--;
+			
+			if(e.equals(player1Ship))
 			{
-				redScore++;
-			}
-			else
-			{
-				gameOver = true;
-			}
-			player1Ship = null;
-		}
-		else if(s.equals(player2Ship))
-		{
-			if(isMultiplayer)
-			{
-				blueScore++;
-			}
-			player2Ship = null;
-		}
-		else if(s instanceof AIShip)
-		{
-			if(player1Ship != null)
-			{
-				if(s instanceof AICarrier)
+				if(isMultiplayer)
 				{
-					score += 5;
+					redScore++;
 				}
 				else
 				{
-					score++;
+					gameOver = true;
+				}
+				player1Ship = null;
+			}
+			else if(e.equals(player2Ship))
+			{
+				if(isMultiplayer)
+				{
+					blueScore++;
+				}
+				player2Ship = null;
+			}
+			else if(e instanceof AIShip)
+			{
+				if(player1Ship != null)
+				{
+					if(e instanceof AIGunship)
+					{
+						score += 5;
+					}
+					else
+					{
+						score++;
+					}
 				}
 			}
 		}
-
-		entities.remove(s);
+		
+		entities.remove(e);
 	}
 
 	public static void setMultiplayer(boolean b)
@@ -436,7 +446,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	{
 		return panelHeight;
 	}
-	
+
 	public static int getScore()
 	{
 		return score;

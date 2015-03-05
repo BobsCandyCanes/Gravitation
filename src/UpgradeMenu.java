@@ -1,20 +1,19 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 
-public class ShipMenu extends MainMenu
+public class UpgradeMenu extends MainMenu
 {
 	private static final long serialVersionUID = 1L;
 
@@ -26,12 +25,17 @@ public class ShipMenu extends MainMenu
 	
 	private static JPanel topPanel;
 	private static JPanel buttonPanel;
+	private static JPanel gridPanel;
+	
+	private static JLabel experienceLabel;
 
 	private static String previousMenu;
 	
-	private JButton back = new JButton("Back");
+	private UpgradeBar[] upgradeBars = new UpgradeBar[4];
+	
+	private GameButton back;
 
-	public ShipMenu(int width, int height, String previousState)
+	public UpgradeMenu(int width, int height, String previousState)
 	{
 		setBackground(Color.BLACK);
 
@@ -45,22 +49,31 @@ public class ShipMenu extends MainMenu
 		setLayout(mainLayout);
 		
 		initializePanels();
+		initializeUpgradeBars();
 		initializeButtons();
 	}
 	
 	public void initializePanels()
 	{
+		topPanel = new JPanel();
 		buttonPanel = new JPanel();
-		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+		gridPanel = new JPanel();
+		
+		gridPanel.setLayout(new GridLayout(3, 2, 50, 100));
+		gridPanel.setOpaque(false);
+		gridPanel.setBackground(Color.MAGENTA);
+		
+		buttonPanel.setLayout(new FlowLayout());
 		buttonPanel.setOpaque(false);
-		buttonPanel.setBackground(Color.BLACK);
+		buttonPanel.setBackground(Color.MAGENTA);
+		buttonPanel.add(Box.createVerticalStrut(panelHeight / 2));
+		buttonPanel.add(gridPanel);
 		add(buttonPanel, BorderLayout.CENTER);
 		
-		topPanel = new JPanel();
 		topPanel.setBackground(Color.DARK_GRAY);
 		topPanel.setPreferredSize(new Dimension(10, 90));
 		
-		JLabel experienceLabel = new JLabel("Experience:  " + ProfileManager.getExperience());
+		experienceLabel = new JLabel("Experience:  " + ProfileManager.getExperience());
 		experienceLabel.setFont(new Font("Lucida", Font.ITALIC, 20));
 		experienceLabel.setForeground(Color.WHITE);
 		experienceLabel.setPreferredSize(new Dimension(250, 60));
@@ -72,9 +85,7 @@ public class ShipMenu extends MainMenu
 
 	public void initializeButtons()
 	{
-		back.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		setButtonLook(back, "menuButton.png");
+		back = new GameButton("Back", "menuButton.png", (int)buttonWidth, (int)buttonHeight);
 
 		back.addActionListener(new ActionListener()
 		{
@@ -88,7 +99,19 @@ public class ShipMenu extends MainMenu
 
 		buttonPanel.add(Box.createVerticalStrut(panelHeight / 3));
 		buttonPanel.add(back);
-		buttonPanel.add(Box.createVerticalStrut(6));
+	}
+	
+	public void initializeUpgradeBars()
+	{	
+		upgradeBars[0] = new UpgradeBar(ProfileManager.getAttributes()[0]);
+		upgradeBars[1] = new UpgradeBar(ProfileManager.getAttributes()[1]);
+		upgradeBars[2] = new UpgradeBar(ProfileManager.getAttributes()[2]);
+		upgradeBars[3] = new UpgradeBar(ProfileManager.getAttributes()[3]);
+		
+		for(UpgradeBar ub : upgradeBars)
+		{
+			gridPanel.add(ub);
+		}
 	}
 
 	public void actionPerformed(ActionEvent e)
@@ -100,12 +123,20 @@ public class ShipMenu extends MainMenu
 
 	public void paintComponent(Graphics g)
 	{	
-		super.paintComponent(g);  // What does this even do?
+		super.paintComponent(g);
 
-		g.setFont(new Font("Lucida", Font.ITALIC, 22));
-
-		g.setColor(Color.WHITE);
-
-		g.drawString("Experience: " + ProfileManager.getExperience(), 550, 80);
+		g.setColor(Color.BLACK);
+		
+		g.fillRect(0, 0, panelWidth, panelHeight);
+		
+		for(UpgradeBar ub : upgradeBars)
+		{
+			ub.draw(g);
+		}
+	}
+	
+	public static void updateExperience()
+	{
+		experienceLabel.setText("Experience:  " + ProfileManager.getExperience());
 	}
 }

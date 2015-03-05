@@ -1,0 +1,7 @@
+Daniel is a Fig
+High Score: 102
+Experience: 44
+Max Health: 110.0
+Health Regen: 0.1
+Max Speed: 3.0
+Armor Value: 1.0

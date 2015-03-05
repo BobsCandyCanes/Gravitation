@@ -14,7 +14,7 @@ public class MainPanel extends JPanel implements ActionListener
 	protected static int panelWidth;
 	protected static int panelHeight;
 
-	protected Graphics g;
+	protected static Graphics g;
 	
 	protected static Timer timer;
 	
@@ -43,5 +43,4 @@ public class MainPanel extends JPanel implements ActionListener
 	{
 		this.repaint(); 
 	}
-
 }

@@ -3,6 +3,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 public class Gravity
 {
@@ -19,12 +20,18 @@ public class Gravity
 	private static int windowHeight = 700;
 
 	public static void main(String[] args) 
-	{
+	{		
 		SpriteLibrary.importAllSprites();
 		ProfileManager.initializeProfiles();
-		
-		initializeWindow();
-		initializePanel();
+
+		SwingUtilities.invokeLater(new Runnable() 
+		{
+			public void run() 
+			{
+				initializeWindow();
+				initializePanel();
+			}
+		});
 	}
 
 	public static void initializeWindow()	//Initializes a JFrame
@@ -34,23 +41,22 @@ public class Gravity
 		mainWindow.setBackground(Color.WHITE);
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainWindow.setLayout(mainLayout);
+		mainWindow.setResizable(false);
 		mainWindow.setVisible(true);
 	}
 
-	public static void setState(String newState)
-	{
-		previousState = state;
-		state = newState;
-		initializePanel();
-	}
-
-	public static void initializePanel()	//Creates a new GamePanel
+	//If there is no mainPanel, creates a new mainMenu
+	//Otherwise, switches mainPanel to match the game state
+	
+	public static void initializePanel()
 	{
 		if(mainPanel != null)
 		{
 			mainPanel.stop();
 			mainWindow.remove(mainPanel);
+			mainPanel = null;
 		}
+		
 		if(state.equals("mainMenu"))
 		{
 			mainPanel = new MainMenu(windowWidth, windowHeight);
@@ -59,18 +65,29 @@ public class Gravity
 		{
 			mainPanel = new GamePanel(windowWidth, windowHeight);
 		}
-		else if(state.equals("gameOverMenu"))
+		else if(state.equals("gameOver"))
 		{
 			mainPanel = new GameOverMenu(windowWidth, windowHeight);
 		}
-		else if(state.equals("shipMenu"))
+		else if(state.equals("upgradeMenu"))
 		{
-			mainPanel = new ShipMenu(windowWidth, windowHeight, previousState);
+			mainPanel = new UpgradeMenu(windowWidth, windowHeight, previousState);
 		}
 
 		mainWindow.add(mainPanel);
-		mainPanel.run();
-		mainWindow.add(mainPanel, BorderLayout.CENTER);
+		mainPanel.run();	
 		mainWindow.pack();
+	}
+
+	public static String getState()
+	{
+		return state;
+	}
+
+	public static void setState(String newState)
+	{
+		previousState = state;
+		state = newState;
+		initializePanel();
 	}
 }

@@ -1,21 +1,14 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -26,8 +19,8 @@ public class MainMenu extends MainPanel implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
 
-	protected static double buttonWidth = 240;
-	protected static double buttonHeight = 60;
+	protected static int buttonWidth = 240;
+	protected static int buttonHeight = 60;
 	protected static int fontSize = 28;
 
 	private static BorderLayout mainLayout = new BorderLayout();
@@ -35,12 +28,12 @@ public class MainMenu extends MainPanel implements ActionListener
 	private JPanel buttonPanel = new JPanel();
 	private JPanel profilePanel = new JPanel();
 
-	private JButton onePlayer = new JButton("One Player");
-	private JButton twoPlayers = new JButton("Two Players");
-	private JButton shipMenu = new JButton("Ship");
-	private JButton quitGame = new JButton("Quit Game");
-	private JButton addProfile = new JButton();
-	private JButton removeProfile = new JButton();
+	private GameButton onePlayer;
+	private GameButton twoPlayers;
+	private GameButton shipMenu;
+	private GameButton quitGame;
+	private GameButton addProfile;
+	private GameButton removeProfile;
 
 	private JComboBox profileChooser;
 
@@ -64,15 +57,10 @@ public class MainMenu extends MainPanel implements ActionListener
 
 	public void initializeButtonPanel()
 	{
-		onePlayer.setAlignmentX(Component.CENTER_ALIGNMENT);
-		twoPlayers.setAlignmentX(Component.CENTER_ALIGNMENT);
-		shipMenu.setAlignmentX(Component.CENTER_ALIGNMENT);
-		quitGame.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-		setButtonLook(onePlayer, "menuButton.png");
-		setButtonLook(twoPlayers, "menuButton.png");
-		setButtonLook(shipMenu, "menuButton.png");
-		setButtonLook(quitGame, "menuButton.png");
+		onePlayer  = new GameButton("One Player", "menuButton.png", buttonWidth, buttonHeight);
+		twoPlayers = new GameButton("Two Players", "menuButton.png", buttonWidth, buttonHeight);
+		shipMenu   = new GameButton("Upgrades", "menuButton.png", buttonWidth, buttonHeight);
+		quitGame   = new GameButton("Quit Game", "menuButton.png", buttonWidth, buttonHeight);
 
 		onePlayer.addActionListener(new ActionListener()
 		{
@@ -91,12 +79,12 @@ public class MainMenu extends MainPanel implements ActionListener
 				Gravity.setState("gameRunning");
 			}
 		});
-		
+
 		shipMenu.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				Gravity.setState("shipMenu");
+				Gravity.setState("upgradeMenu");
 			}
 		});
 
@@ -132,23 +120,35 @@ public class MainMenu extends MainPanel implements ActionListener
 		profileLabel.setFont(new Font("Lucida", Font.ITALIC, 20));
 		profileLabel.setForeground(Color.WHITE);
 
-		addProfile.setPreferredSize(new Dimension(25,25));
-		removeProfile.setPreferredSize(new Dimension(25,25));
-		
-		setButtonLook(addProfile, "plusButton.png");
-		setButtonLook(removeProfile, "minusButton.png");
-		
+		addProfile = new GameButton("", "plusButton.png", 25, 25);
+		removeProfile = new GameButton("", "minusButton.png", 30, 12);
+
 		addProfile.addActionListener(			
 				new ActionListener()
 				{
 					public void actionPerformed(ActionEvent e) 
 					{
+						//Prompt the user for a name
 						String name = (String)JOptionPane.showInputDialog(null, "Profile Name: ");
 
 						if ((name != null) && (name.length() > 0)) 
 						{
-							ProfileManager.createProfile(name);
+							
+							//Make sure profile doesn't already exist
+							for(String s : ProfileManager.getProfileNames())
+							{
+								if(name.equals(s))
+								{
+									JOptionPane.showMessageDialog(null,
+										    "Profile \"" + name + "\" already exists", "",
+										    JOptionPane.ERROR_MESSAGE);
 
+									return;
+								}
+							}
+							
+							ProfileManager.createProfile(name);
+							System.out.println("Current profile: " + ProfileManager.getCurrentProfile());
 							repopulateProfileChooser();
 						}
 					}
@@ -159,6 +159,7 @@ public class MainMenu extends MainPanel implements ActionListener
 				{
 					public void actionPerformed(ActionEvent e) 
 					{
+						//Ask the user for confirmation
 						int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete "
 								+ ProfileManager.getCurrentProfile().getName() + "?", "Confirm",
 								JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
@@ -187,13 +188,14 @@ public class MainMenu extends MainPanel implements ActionListener
 		profileChooser = new JComboBox(ProfileManager.getProfileNames());
 		profileChooser.setSelectedIndex(0);
 		profileChooser.addActionListener(this);	
-		profileChooser.setPreferredSize(new Dimension(200, 80));
+		profileChooser.setPreferredSize(new Dimension(200, 50));
 		profileChooser.setPrototypeDisplayValue("XXXXXXXXXXXXXXXXXXXX");
 
 		profileChooser.addActionListener(
 				new ActionListener()
 				{
-					public void actionPerformed(ActionEvent e) {
+					public void actionPerformed(ActionEvent e) 
+					{
 						JComboBox cb = (JComboBox)e.getSource();
 						String newProfile = (String)cb.getSelectedItem();
 						ProfileManager.saveProfile();
@@ -204,11 +206,26 @@ public class MainMenu extends MainPanel implements ActionListener
 
 	public void repopulateProfileChooser()
 	{
-		profileChooser.removeAllItems();
+		System.out.println("Repopulate");
 		
-		for(String s : ProfileManager.getProfileNames())
+		profileChooser.removeAllItems();
+
+		for(int i = 0; i < ProfileManager.getProfileNames().length; i++)
 		{
-			profileChooser.addItem(s);
+			String name = ProfileManager.getProfileNames()[i];
+			
+			profileChooser.addItem(name);
+			
+			//TODO this doesn't seem to work
+			if(name.equals(ProfileManager.getCurrentProfile()))
+			{
+				System.out.println("Found profile!");
+				profileChooser.setSelectedIndex(i);
+			}
+			else
+			{
+				System.out.println(name + " != " + ProfileManager.getCurrentProfile());
+			}
 		}
 	}
 
@@ -222,51 +239,14 @@ public class MainMenu extends MainPanel implements ActionListener
 
 		Profile currentProfile = ProfileManager.getCurrentProfile();
 
-		g.drawString("High Score: " + currentProfile.getHighScore(), 550, 155);
-		g.drawString("Experience: " + currentProfile.getExperience(), 560, 180);		
-	}
-
-	public void setButtonLook(JButton button, String spritePath)
-	{
-		BufferedImage sprite = SpriteLibrary.getSprite(spritePath);
-
-		if(spritePath.equals("plusButton.png"))
-		{
-			sprite = scaleSprite(sprite, 25, 25);
-		}
-		else if(spritePath.equals("minusButton.png"))
-		{
-			sprite = scaleSprite(sprite, 30, 10);
-		}
-		else
-		{
-			sprite = scaleSprite(sprite, 240, 60);
-		}
-
-		ImageIcon icon = new ImageIcon(sprite);
-
-		button.setIcon(icon);
-		button.setMargin(new Insets(0, 0, 0, 0));
-		button.setBackground(Color.WHITE);
-
-		button.setFont(new Font("LucidaTypewriter", Font.ITALIC, fontSize));
-
-		button.setHorizontalTextPosition(JButton.CENTER);
-		button.setVerticalTextPosition(JButton.CENTER);
-
-		button.setBorder(null);
-	}
-
-	public static BufferedImage scaleSprite(BufferedImage s, int width, int height)
-	{
-		int spriteWidth  = s.getWidth();
-		int spriteHeight = s.getHeight();
-
-		double scaleX = (double)width / spriteWidth;
-		double scaleY = (double)height / spriteHeight;
-		AffineTransform scaleTransform = AffineTransform.getScaleInstance(scaleX, scaleY);
-		AffineTransformOp bilinearScaleOp = new AffineTransformOp(scaleTransform, AffineTransformOp.TYPE_BILINEAR);
-
-		return s = bilinearScaleOp.filter(s, new BufferedImage(width, height, s.getType()));
+		g.drawString("High Score: " + currentProfile.getHighScore(), 580, 155);
+		g.drawString("Experience: " + currentProfile.getExperience(), 580, 180);		
+		
+		/*
+		g.drawString("Max Health: "   + currentProfile.getMaxHealth(), 900, 150);	
+		g.drawString("Health Regen: " + currentProfile.getHealthRegen(), 900, 170);	
+		g.drawString("Max Speed: "    + currentProfile.getMaxSpeed(), 900, 190);	
+		g.drawString("Armor Value: "  + currentProfile.getArmorValue(), 900, 210);	
+		*/
 	}
 }

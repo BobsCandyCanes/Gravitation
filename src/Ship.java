@@ -1,4 +1,4 @@
-import java.awt.Color;
+
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -6,13 +6,13 @@ import java.awt.Rectangle;
 
 public class Ship extends Entity
 {	
-	protected final double HEALTH_REGEN = 0.1;
+	protected double maxHealth = 75;
+	protected double healthRegen = 0.1;
+	protected double maxSpeed = 3;
+	protected double armorValue = 1;
 
-	protected final double MAX_HEALTH = 75;
-	protected final double MAX_SPEED = 3;
+	protected double health = maxHealth;
 
-	protected double health = 75;
-	
 	protected int firingDelay = 8; //Higher number means slower firing
 
 	protected double angleInRadians = 0;
@@ -21,8 +21,6 @@ public class Ship extends Entity
 
 	protected int turnsSinceLastShot = 0;
 
-	protected boolean shieldUp = false;
-
 	public Ship()
 	{
 
@@ -30,7 +28,7 @@ public class Ship extends Entity
 
 	public Ship(int x, int y)
 	{
-		this(x, y, 25, 12);
+		this(x, y, 26, 13);
 	}
 
 	public Ship(int x, int y, int w, int h)
@@ -49,6 +47,21 @@ public class Ship extends Entity
 		bounds = new Rectangle ((int)xPosition, (int)yPosition, (int)width, (int)height);
 
 		importSprite("ship.png");
+
+		if(!GamePanel.isMultiplayer())
+		{
+			initAttributes();
+		}
+	}
+
+	public void initAttributes()
+	{
+		maxHealth   = ProfileManager.getMaxHealth();
+		healthRegen = ProfileManager.getHealthRegen();
+		maxSpeed    = ProfileManager.getMaxSpeed();
+		armorValue  = ProfileManager.getArmorValue();
+
+		health = maxHealth;
 	}
 
 	public void draw(Graphics g)
@@ -57,46 +70,27 @@ public class Ship extends Entity
 
 		g2d.rotate(-Math.toRadians(angleInDegrees), centerXPosition, centerYPosition);
 
-		
-		if(shieldUp)
-		{
-			g2d.setColor(Color.CYAN.darker());
-			g2d.fillOval((int)(xPosition - width / 2), (int)(yPosition - height / 2), 
-						 (int)(width * 2), (int)(height * 2));
-		}
-		 
-
 		g2d.drawImage(sprite, (int)xPosition, (int)yPosition, null);
-
-		g2d.setColor(Color.BLACK);
-
-		g2d.drawRect((int)xPosition, (int)yPosition, (int)width, (int)height);
-
-		drawSmokeTrail(g2d);
 
 		g2d.rotate(Math.toRadians(angleInDegrees), centerXPosition, centerYPosition);
 	}
 
-	public void drawSmokeTrail(Graphics2D g2d)
+	public void rotate(double radians) 
 	{
-		g2d.setColor(Color.GRAY);
+		angleInRadians += radians;
 
-	}
+		double twoPi = Math.PI * 2;
 
-	public void rotate(int degrees) 
-	{
-		angleInDegrees += degrees;
-
-		if(angleInDegrees >= 360)
+		if(angleInRadians >=  twoPi)
 		{
-			angleInDegrees -= 360;
+			angleInRadians -= twoPi;
 		}
-		else if(angleInDegrees <= -360)
+		else if(angleInRadians <= -twoPi)
 		{
-			angleInDegrees += 360;
+			angleInRadians += twoPi;
 		}
 
-		angleInRadians = Math.toRadians(angleInDegrees);
+		angleInDegrees = Math.toDegrees(angleInRadians);
 	}
 
 	public void act()
@@ -106,7 +100,7 @@ public class Ship extends Entity
 		calculateLocation();
 		checkForCollision();
 
-		if(health < MAX_HEALTH)
+		if(health < maxHealth)
 		{
 			regenerateHealth();
 		}
@@ -157,48 +151,39 @@ public class Ship extends Entity
 		bounds = new Rectangle ((int)centerXPosition - newWidth / 2, (int)centerYPosition - newHeight / 2, newWidth, newHeight);
 	}
 
-	public void enforceSpeedLimit()
-	{
-		if(xVelocity > MAX_SPEED)
-		{
-			xVelocity = MAX_SPEED;
-		}
-		else if(xVelocity < -MAX_SPEED)
-		{
-			xVelocity = -MAX_SPEED;
-		}
-
-		if(yVelocity > MAX_SPEED)
-		{
-			yVelocity = MAX_SPEED;
-		}
-		else if(yVelocity < -MAX_SPEED)
-		{
-			yVelocity = -MAX_SPEED;
-		}
-	}
-
 	public void checkForCollision()
 	{
 		for(Entity e : GamePanel.getEntities())
 		{
-			if(e != this)
+			if(e instanceof Planet && !(e instanceof SpaceStation))
 			{
-				if(e instanceof Planet && !(e instanceof SpaceStation))
+				if(getDistanceFrom(e) < (e.getWidth() / 2) + (width / 2))
 				{
-					if(getDistanceFrom(e) < (e.getWidth() / 2) + (width / 2))
-					{
-						destroy();
-						return;
-					}
+					xPosition -= xVelocity;
+					yPosition -= yVelocity;
+
+					xVelocity *= - 0.75;
+					yVelocity *= - 0.75;
+
+					takeDamage(health / 2);
+
+					GamePanel.addEntity(new Explosion(centerXPosition + xVelocity, centerYPosition + yVelocity, 15));
+
+					return;
 				}
-				else if(e instanceof Ship)
+			}
+			else if(e instanceof Ship)
+			{
+				if(e != this)
 				{
 					if(getDistanceFrom(e) < (e.getWidth() / 2) + (width / 2))
 					{
 						Ship s = (Ship)e;
-						takeDamage(10);
-						s.takeDamage(10);
+						takeDamage(15);
+						s.takeDamage(15);
+
+						xVelocity *= 0.1;
+						yVelocity *= 0.1;
 						return;
 					}
 				}
@@ -208,12 +193,12 @@ public class Ship extends Entity
 
 	public void regenerateHealth()
 	{
-		health += HEALTH_REGEN;
+		health += healthRegen;
 	}
 
 	public void destroy()
 	{
-		GamePanel.removeShip(this);
+		GamePanel.removeEntity(this);
 
 		GamePanel.addEntity(new Explosion(centerXPosition, centerYPosition, 30));
 	}
@@ -246,7 +231,7 @@ public class Ship extends Entity
 
 	public void takeDamage(double damage)
 	{
-		health -= damage;
+		health -= damage - armorValue;
 
 		if(health <= 0)
 		{
@@ -275,6 +260,16 @@ public class Ship extends Entity
 	public double getHealth()
 	{
 		return health;
+	}
+
+	public double getMaxHealth()
+	{
+		return maxHealth;
+	}
+
+	public void setMaxHealth(double h)
+	{
+		maxHealth = h;
 	}
 
 	public double getXVelocity()

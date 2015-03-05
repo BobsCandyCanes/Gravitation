@@ -1,30 +1,41 @@
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
 
 public final class SpriteLibrary
 {
-	private static String[] spritePaths = {
-		"ship.png",
-		"enemyShip.png",
-		"moon.png",
-		"planet1.png",
-		"menuButton.png",
-		"planet2.png",
-		"plusButton.png",
-		"minusButton.png"
-	};
-
-	private static BufferedImage[] sprites = new BufferedImage[spritePaths.length];
+	
+	private static ArrayList<String> spritePaths = new ArrayList<String>();
+	
+	private static BufferedImage[] sprites;
 
 	public static void importAllSprites()
 	{
-		for(int i = 0; i < spritePaths.length; i++)
+		File[] files = new File("Images/").listFiles();
+		
+		for (File file : files) 
 		{
-			String path = spritePaths[i];
+		    if (file.isFile()) 
+		    {
+		        spritePaths.add(file.getName());
+		    }
+		    else
+		    {
+		    	System.out.println("Error loading sprites!");
+		    }
+		}
+		
+		sprites = new BufferedImage[spritePaths.size()];
+		
+		for(int i = 0; i < spritePaths.size(); i++)
+		{
+			String path = spritePaths.get(i);
 
 			try 
 			{
@@ -43,9 +54,9 @@ public final class SpriteLibrary
 	{
 		int index = -1;
 
-		for(int i = 0; i < spritePaths.length; i++)
+		for(int i = 0; i < spritePaths.size(); i++)
 		{
-			if(spritePaths[i].equals(name))
+			if(spritePaths.get(i).equals(name))
 			{
 				index = i;
 				break;
@@ -61,5 +72,20 @@ public final class SpriteLibrary
 			System.out.println("Sprite not found: " + name);
 			return sprites[0];
 		}
+	}
+	
+	public static BufferedImage scaleSprite(BufferedImage s, double w, double h)
+	{
+		int spriteWidth  = s.getWidth();
+		int spriteHeight = s.getHeight();
+
+		double scaleX = (double)w / spriteWidth;
+		double scaleY = (double)h / spriteHeight;
+		AffineTransform scaleTransform = AffineTransform.getScaleInstance(scaleX, scaleY);
+		AffineTransformOp bilinearScaleOp = new AffineTransformOp(scaleTransform, AffineTransformOp.TYPE_BILINEAR);
+
+		s = bilinearScaleOp.filter(s, new BufferedImage((int)w, (int)h, s.getType()));
+		
+		return s;
 	}
 }

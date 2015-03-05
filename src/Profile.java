@@ -12,6 +12,20 @@ public class Profile
 	private String filePath;
 	private int highScore;
 	private int experience;
+	
+	//Custom values
+	protected double maxHealth = 75;
+	protected double healthRegen = 0.1;
+	protected double maxSpeed = 3;
+	protected double armorValue = 1;
+	
+	protected Attribute[] attributes =
+			{
+				new Attribute("Health"),
+				new Attribute("Regen"),
+				new Attribute("Speed"),
+				new Attribute("Armor")
+			};
 
 	public Profile(String name)
 	{
@@ -35,8 +49,12 @@ public class Profile
 			BufferedWriter out = new BufferedWriter(new FileWriter(filePath));
 
 			out.write(name + "\n");
-			out.write("High Score: " + highScore + "\n");
-			out.write("Experience: " + experience + "\n");  
+			out.write("High Score: "   + highScore   + "\n");
+			out.write("Experience: "   + experience  + "\n");  
+			out.write("Max Health: "   + maxHealth   + "\n");
+			out.write("Health Regen: " + healthRegen + "\n");  
+			out.write("Max Speed: "    + maxSpeed    + "\n");
+			out.write("Armor Value: "  + armorValue  + "\n");  
 
 			out.close();
 		} 
@@ -61,14 +79,35 @@ public class Profile
 
 			while((bufferedReader.readLine()) != null) 
 			{  	
+				//Read in Strings and parse for number values
+				
 				String highScoreString = bufferedReader.readLine();
 				highScoreString = highScoreString.replace("High Score: ", "");
 				highScore = Integer.parseInt(highScoreString); 
 
 				String experienceString = bufferedReader.readLine();
 				experienceString = experienceString.replace("Experience: ", "");
-				
 				experience = Integer.parseInt(experienceString);
+				
+				String maxHealthString = bufferedReader.readLine();
+				maxHealthString = maxHealthString.replace("Max Health: ", "");
+				maxHealth = Double.parseDouble(maxHealthString);
+				attributes[0].setValue(maxHealth);
+				
+				String healthRegenString = bufferedReader.readLine();
+				healthRegenString = healthRegenString.replace("Health Regen: ", "");
+				healthRegen = Double.parseDouble(healthRegenString);
+				attributes[1].setValue(healthRegen);
+				
+				String maxSpeedString = bufferedReader.readLine();
+				maxSpeedString = maxSpeedString.replace("Max Speed: ", "");
+				maxSpeed = Double.parseDouble(maxSpeedString);
+				attributes[2].setValue(maxSpeed);
+				
+				String armorValueString = bufferedReader.readLine();
+				armorValueString = armorValueString.replace("Armor Value: ", "");
+				armorValue = Double.parseDouble(armorValueString);
+				attributes[3].setValue(armorValue);
 			}
 			bufferedReader.close();  
 		}    
@@ -84,8 +123,8 @@ public class Profile
 	
 	public void delete()
 	{
-    	try{
-    		 
+    	try
+    	{	 
     		File file = new File(filePath);
  
     		if(file.delete())
@@ -101,10 +140,53 @@ public class Profile
     	catch(Exception e)
     	{
     		e.printStackTrace();
- 
     	}	
 	}
 	
+	public void updateAttributes()
+	{
+		maxHealth   = attributes[0].getValue();
+		healthRegen = attributes[1].getValue();
+		maxSpeed    = attributes[2].getValue();
+		armorValue  = attributes[3].getValue();
+	}
+	
+	public Attribute[] getAttributes()
+	{
+		return attributes;
+	}
+	public double getMaxHealth()
+	{
+		return maxHealth;
+	}
+	public void setMaxHealth(double maxHealth)
+	{
+		this.maxHealth = maxHealth;
+	}
+	public double getHealthRegen()
+	{
+		return healthRegen;
+	}
+	public void setHealthRegen(double healthRegen)
+	{
+		this.healthRegen = healthRegen;
+	}
+	public double getMaxSpeed()
+	{
+		return maxSpeed;
+	}
+	public void setMaxSpeed(double maxSpeed)
+	{
+		this.maxSpeed = maxSpeed;
+	}
+	public double getArmorValue()
+	{
+		return armorValue;
+	}
+	public void setArmorValue(double armorValue)
+	{
+		this.armorValue = armorValue;
+	}
 	public String getName()
 	{
 		return name;
@@ -125,4 +207,9 @@ public class Profile
 	{
 		experience += i;
 	}
+	public String toString()
+	{
+		return name;
+	}
 }
+
