@@ -1,7 +1,0 @@
-F
-High Score: 0
-Experience: 0
-Max Health: 75.0
-Health Regen: 0.1
-Max Speed: 3.0
-Armor Value: 1.0

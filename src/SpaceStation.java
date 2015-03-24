@@ -81,8 +81,8 @@ public class SpaceStation extends Moon
 					double xDifference = getXDistanceFrom(target) / 10;
 					double yDifference = getYDistanceFrom(target) / 10;
 
-					double projectileXVelocity = xDifference / 3 * 4;
-					double projectileYVelocity = yDifference / 3 * 4;
+					double projectileXVelocity = xDifference;
+					double projectileYVelocity = yDifference;
 					
 					GamePanel.addEntity(new Projectile(centerXPosition, centerYPosition, projectileXVelocity, projectileYVelocity));
 				}
@@ -94,7 +94,7 @@ public class SpaceStation extends Moon
 	{
 		if(faction.equals("player1"))
 		{
-			g.setColor(Color.BLUE);
+			g.setColor(Color.GREEN);
 		}
 		else if(faction.equals("player2"))
 		{

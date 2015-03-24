@@ -2,6 +2,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
+/**
+ * A moon is a smaller planet that orbits regular planets
+ */
 
 public class Moon extends Planet
 {	
@@ -46,7 +49,7 @@ public class Moon extends Planet
 		locationInOrbit += speed;
 		
 		calculateLocation();
-		attractProjectiles();
+		attractEntities();
 		
 		if(hasFinishedOrbit())
 		{

@@ -1,4 +1,9 @@
 
+/**
+ * A bigger, slower, stronger version of AIShip
+ * 
+ * The AI is mostly the same
+ */
 
 public class AIGunship extends AIShip
 {
@@ -10,6 +15,8 @@ public class AIGunship extends AIShip
 
 	private static int DEFAULT_WIDTH = 45;
 	private static int DEFAULT_HEIGHT = 30;
+	
+	private static double ANGLE_RANGE = Math.PI / 6;
 	
 	public AIGunship()
 	{
@@ -52,6 +59,12 @@ public class AIGunship extends AIShip
 		yVelocity = Math.sin(angleInRadians) * MAX_SPEED;
 	}
 	
+	public void addEngineTrail()
+	{
+		// Don't add engine trails
+		// It moves so slow you can't see them anyway
+	}
+	
 	public void shoot()
 	{
 		if(turnsSinceLastShot >= firingDelay)
@@ -66,6 +79,7 @@ public class AIGunship extends AIShip
 			
 			Projectile p = new Projectile(getCenterXPosition() - xVector * 2.5, getCenterYPosition() + yVector * 2.5, vX, vY, 14);
 			p.setDamage(18);
+			p.setParent(this);
 			GamePanel.addEntity(p);
 		}
 	}
@@ -75,5 +89,7 @@ public class AIGunship extends AIShip
 		GamePanel.removeEntity(this);
 
 		GamePanel.addEntity(new Explosion(centerXPosition, centerYPosition, 45));
+		
+		GamePanel.addScore(15);
 	}
 }

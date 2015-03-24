@@ -30,6 +30,8 @@ public class GameOverMenu extends MainMenu implements ActionListener
 
 	private int stepCounter = 0;
 	private int experienceAdded = 0;
+	
+	private int score = 0;
 
 	public GameOverMenu(int width, int height)
 	{
@@ -41,6 +43,8 @@ public class GameOverMenu extends MainMenu implements ActionListener
 		setPreferredSize(new Dimension(panelWidth, panelHeight));
 		
 		setLayout(mainLayout);
+		
+		score = GamePanel.getScore();
 		
 		initializePanels();
 		initializeButtons();
@@ -56,13 +60,14 @@ public class GameOverMenu extends MainMenu implements ActionListener
 		
 		topPanel = new JPanel();
 		topPanel.setBackground(Color.DARK_GRAY);
-		topPanel.setPreferredSize(new Dimension(10, 90));
+		topPanel.setPreferredSize(new Dimension(100, 90));
 		
-		JLabel scoreLabel = new JLabel("Score:  " + GamePanel.getScore());
+		JLabel scoreLabel = new JLabel("Score:  " + score);
 		scoreLabel.setFont(new Font("Lucida", Font.ITALIC, 20));
 		scoreLabel.setForeground(Color.WHITE);
 		scoreLabel.setPreferredSize(new Dimension(250, 60));
 
+		
 		topPanel.add(scoreLabel);
 		
 		add(topPanel, BorderLayout.NORTH);
@@ -80,7 +85,7 @@ public class GameOverMenu extends MainMenu implements ActionListener
 			{
 				if(experienceAdded < GamePanel.getScore())
 				{
-					ProfileManager.addExperience(GamePanel.getScore() - experienceAdded);
+					ProfileManager.addExperience(score - experienceAdded);
 				}
 				
 				ProfileManager.saveProfile();
@@ -90,9 +95,15 @@ public class GameOverMenu extends MainMenu implements ActionListener
 		});
 		
 		shipMenu.addActionListener(new ActionListener()
-		{
+		{			
 			public void actionPerformed(ActionEvent e)
 			{
+				if(experienceAdded < GamePanel.getScore())
+				{
+					ProfileManager.addExperience(score - experienceAdded);
+				}
+				
+				ProfileManager.saveProfile();
 				Gravity.setState("upgradeMenu");
 			}
 		});
@@ -103,7 +114,7 @@ public class GameOverMenu extends MainMenu implements ActionListener
 			{
 				if(experienceAdded < GamePanel.getScore())
 				{
-					ProfileManager.addExperience(GamePanel.getScore() - experienceAdded);
+					ProfileManager.addExperience(score - experienceAdded);
 				}
 				
 				ProfileManager.saveProfile();

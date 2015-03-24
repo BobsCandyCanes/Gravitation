@@ -1,14 +1,24 @@
 
+/**
+ * A ship that is programmed to follow and attack the player
+ * 
+ * Note that it extends Player2Ship, not Ship
+ */
+
 public class AIShip extends Player2Ship
 {
+	private static final double PLANET_BUFFER = 10;
+	
 	private static final double ONE_DEGREE_IN_RADIANS = 0.0175;
 
 	private static double TURN_SPEED = ONE_DEGREE_IN_RADIANS * 3.5;
-	private static double MAX_SPEED = 4;
+	private static double MAX_SPEED = 5;
 	
+	private static double ANGLE_RANGE = Math.PI / 6;
+
 	private static double DEFAULT_WIDTH = 25;
 	private static double DEFAULT_HEIGHT = 18;
-
+	
 	protected double targetAngleInRadians;
 
 	public AIShip()
@@ -38,12 +48,17 @@ public class AIShip extends Player2Ship
 
 		if(GamePanel.getPlayer1Ship() != null)
 		{
-			shoot();
+			if(Math.abs(targetAngleInRadians) - Math.abs(angleInRadians) < ANGLE_RANGE)
+			{
+				shoot();
+			}
 		}
 
 		calculateLocation();
 
 		checkForCollision();
+		
+		addEngineTrail();
 	}
 
 	public void moveTowardsEnemy()
@@ -53,11 +68,11 @@ public class AIShip extends Player2Ship
 		if(target != null)
 		{
 			targetAngleInRadians = calcAngleTo(target);
-			
+
 			avoidPlanets();
-			
+
 			turnTowardsTargetAngle();
-			
+
 			updateVelocity();
 		}
 		else
@@ -69,27 +84,45 @@ public class AIShip extends Player2Ship
 
 	public void avoidPlanets()
 	{	
+		Planet planet = null;
+
 		for(Entity e : GamePanel.getEntities())
 		{
 			if(e instanceof Planet)
 			{
 				if(getDistanceFrom(e) < Planet.getDefaultSize())
-				{					
-					double angleToPlanet = calcAngleTo(e);
-					
-					if(angleToPlanet < angleInRadians)
+				{				
+					if(planet == null || getDistanceFrom(e) < getDistanceFrom(planet))
 					{
-						targetAngleInRadians += Math.PI / 2;
-					}
-					else
-					{
-						targetAngleInRadians -= Math.PI / 2;
+						planet = (Planet) e;
 					}
 				}
 			}
 		}
+		
+		if(planet != null)
+		{
+			double angleToPlanet = calcAngleTo(planet);
+
+			int r = (int)(planet.getWidth() / 2);
+			double distance = getDistanceFrom(planet);
+			 
+			distance -= r + PLANET_BUFFER;
+			distance /= (80 / Math.PI);
+			
+			double deltaTheta = distance;
+			
+			if(angleToPlanet < angleInRadians)
+			{
+				targetAngleInRadians += deltaTheta;
+			}
+			else
+			{
+				targetAngleInRadians -= deltaTheta;
+			}
+		}
 	}
-	
+
 	public void turnTowardsTargetAngle()
 	{
 		if(angleInRadians > targetAngleInRadians)
@@ -107,9 +140,18 @@ public class AIShip extends Player2Ship
 	public double calcAngleTo(Entity target)
 	{
 		double targetAngleInRadians;
-
+		 
 		double xDifference = getXDistanceFrom(target);
 		double yDifference = getYDistanceFrom(target);
+		
+		if(xDifference > GamePanel.getWorldWidth() * 0.4)
+		{
+			xDifference *= -1;
+		}
+		if(yDifference > GamePanel.getWorldHeight() * 0.4)
+		{
+			yDifference *= -1;
+		}
 
 		if(xDifference > 0)
 		{
@@ -133,7 +175,7 @@ public class AIShip extends Player2Ship
 
 		return targetAngleInRadians;
 	}
-	
+
 	public void updateVelocity()
 	{
 		xVelocity = -Math.cos(angleInRadians) * MAX_SPEED;
@@ -166,5 +208,26 @@ public class AIShip extends Player2Ship
 				}
 			}
 		}
+	}
+	
+	public void takeDamage(double damage)
+	{
+		health -= damage;
+
+		if(health <= 0)
+		{
+			this.destroy();
+
+			return;
+		}
+	}
+	
+	public void destroy()
+	{
+		GamePanel.removeEntity(this);
+
+		GamePanel.addEntity(new Explosion(centerXPosition, centerYPosition, 30));
+		
+		GamePanel.addScore(1);
 	}
 }

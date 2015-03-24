@@ -2,13 +2,26 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
+/**
+ * A projectile is shot from a ship
+ * 
+ * Projectiles are affected by gravity (see Planet class)
+ * 
+ * Projectiles explode and deal damage upon collision
+ */
 
 public class Projectile extends Entity
 {	
+	private static final int MAX_AGE = 800;
+	
+	private Ship parent;
+	
+	private Color color = Color.GREEN;
+	
+	private int age = 1;
+	
 	protected double damage;
-
-	private int maxDistanceOffScreen = 250;
-
+	
 	public Projectile()
 	{
 
@@ -42,6 +55,13 @@ public class Projectile extends Entity
 
 	public void act()
 	{
+		age++;
+		
+		if(age >= MAX_AGE)
+		{
+			destroy();
+		}
+		
 		calculateLocation();
 
 		checkForCollision();
@@ -60,6 +80,11 @@ public class Projectile extends Entity
 				Ship s = (Ship) e;
 				if(this.getBounds().intersects(s.getBounds()))
 				{
+					if(parent instanceof AIShip && s instanceof AIShip)
+					{
+						damage *= 0.2;
+					}
+					
 					s.takeDamage(damage);
 					destroy();
 					return;
@@ -91,13 +116,26 @@ public class Projectile extends Entity
 
 	public void checkIfOffScreen()
 	{
-		int panelWidth = GamePanel.getPanelWidth();
-		int panelHeight = GamePanel.getPanelHeight();
+		int worldWidth = GamePanel.getWorldWidth();
+		int worldHeight = GamePanel.getWorldHeight();
 
-		if(xPosition < -maxDistanceOffScreen || xPosition > panelWidth + maxDistanceOffScreen
-				|| yPosition < -maxDistanceOffScreen || yPosition > panelHeight + maxDistanceOffScreen)
+		//Code for wrapping around edges of map
+		if (xPosition > worldWidth) 
 		{
-			this.destroy();
+			xPosition = xPosition % worldWidth;
+		}
+		else if (xPosition < 0) 
+		{
+			xPosition = worldWidth - xPosition;
+		}
+
+		if (yPosition > worldHeight) 
+		{	
+			yPosition = yPosition % worldHeight;
+		}
+		else if (yPosition < 0) 
+		{
+			yPosition = worldHeight - yPosition;
 		}
 	}
 
@@ -110,9 +148,21 @@ public class Projectile extends Entity
 
 	public void draw(Graphics g)
 	{
-		g.setColor(Color.WHITE);
-
+		g.setColor(color);
 		g.fillOval((int)xPosition, (int)yPosition, (int)(width / 2), (int)(height / 2));
+		
+		g.setColor(Color.WHITE);
+		g.drawOval((int)xPosition, (int)yPosition, (int)(width / 2), (int)(height / 2));
+	}
+	
+	public void setParent(Ship s)
+	{
+		parent = s;
+		
+		if(parent instanceof AIShip || parent instanceof Player2Ship)
+		{
+			color = Color.red;
+		}
 	}
 
 	public void setDamage(double d)

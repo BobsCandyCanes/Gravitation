@@ -10,8 +10,8 @@ public abstract class Entity
 	protected double xPosition;
 	protected double yPosition;
 	
-	protected double width;
-	protected double height;
+	protected double width = 1;
+	protected double height = 1;
 	
 	protected double centerXPosition;
 	protected double centerYPosition;

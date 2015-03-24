@@ -1,4 +1,10 @@
 
+/**
+ * Attribute is a wrapper class for the four upgradeable values
+ * The wrapper is necessary so you can share the reference between the game and the profile
+ * It also makes it easier to save and load profiles
+ */
+
 public class Attribute
 {
 	String name;
@@ -6,7 +12,8 @@ public class Attribute
 
 	public Attribute(String name)
 	{
-		//Bad code, I know
+		//Good lord this is awful, but it works and I'm sick of dealing with it
+		//Don't judge me
 		
 		if(name.equals("Health"))
 		{

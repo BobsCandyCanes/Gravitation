@@ -1,11 +1,13 @@
-
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 
+
 public class Ship extends Entity
 {	
+	private static final double TWO_PI = 2 * Math.PI;
+	
 	protected double maxHealth = 75;
 	protected double healthRegen = 0.1;
 	protected double maxSpeed = 3;
@@ -33,6 +35,10 @@ public class Ship extends Entity
 
 	public Ship(int x, int y, int w, int h)
 	{
+		// Setting a mass will make the ship be affected by gravity
+		// Which is awesome, but super buggy so don't do it
+		// mass = 1;
+		
 		xPosition = x;
 		yPosition = y;
 
@@ -79,15 +85,13 @@ public class Ship extends Entity
 	{
 		angleInRadians += radians;
 
-		double twoPi = Math.PI * 2;
-
-		if(angleInRadians >=  twoPi)
+		if(angleInRadians >=  TWO_PI)
 		{
-			angleInRadians -= twoPi;
+			angleInRadians -= TWO_PI;
 		}
-		else if(angleInRadians <= -twoPi)
+		else if(angleInRadians <= -TWO_PI)
 		{
-			angleInRadians += twoPi;
+			angleInRadians += TWO_PI;
 		}
 
 		angleInDegrees = Math.toDegrees(angleInRadians);
@@ -104,31 +108,44 @@ public class Ship extends Entity
 		{
 			regenerateHealth();
 		}
+
+		addEngineTrail();
 	}
 
+	public void addEngineTrail()
+	{
+		double xVector = 12 * Math.cos(angleInRadians);
+		double yVector = 12 * Math.sin(angleInRadians);
+		
+		EngineTrail et = new EngineTrail((int)(centerXPosition - xVector), (int)(centerYPosition + yVector));
+		GamePanel.addEngineTrail(et);
+	}
+	
 	public void calculateLocation()
 	{
-		int panelWidth = GamePanel.getPanelWidth();
-		int panelHeight = GamePanel.getPanelHeight();
-
 		xPosition += xVelocity;
 		yPosition += yVelocity;
 
-		if(xPosition <= 0)
+		int worldWidth = GamePanel.getWorldWidth();
+		int worldHeight = GamePanel.getWorldHeight();
+
+		//Code for wrapping around edges of map
+		if (xPosition > worldWidth) 
 		{
-			xPosition = 0;
+			xPosition = xPosition % worldWidth;
 		}
-		else if(xPosition + width >= panelWidth)
+		else if (xPosition < 0) 
 		{
-			xPosition = panelWidth - width;
+			xPosition = worldWidth - xPosition;
 		}
-		if(yPosition <= 0)
-		{
-			yPosition = 0;
+
+		if (yPosition > worldHeight) 
+		{	
+			yPosition = yPosition % worldHeight;
 		}
-		else if(yPosition + height >= panelHeight)
+		else if (yPosition < 0) 
 		{
-			yPosition = panelHeight - height;
+			yPosition = worldHeight - yPosition;
 		}
 
 		centerXPosition = xPosition + width / 2;
@@ -165,7 +182,7 @@ public class Ship extends Entity
 					xVelocity *= - 0.75;
 					yVelocity *= - 0.75;
 
-					takeDamage(health / 2);
+					takeDamage(health / 2 + 1);
 
 					GamePanel.addEntity(new Explosion(centerXPosition + xVelocity, centerYPosition + yVelocity, 15));
 
@@ -215,7 +232,10 @@ public class Ship extends Entity
 			double vX = xVelocity + xVector;
 			double vY = yVelocity - yVector;
 
-			GamePanel.addEntity(new Projectile(getCenterXPosition() + xVector * 2.5, getCenterYPosition() - yVector * 2.5, vX, vY));
+			Projectile p = new Projectile(getCenterXPosition() + xVector * 2.5, getCenterYPosition() - yVector * 2.5, vX, vY);
+			p.setParent(this);
+	
+			GamePanel.addEntity(p);
 		}
 	}
 

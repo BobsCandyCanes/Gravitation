@@ -12,6 +12,9 @@ public class Explosion extends Entity
 	{
 		maxRadius = r;
 		
+		width = maxRadius * 2;
+		height = maxRadius * 2;
+		
 		centerXPosition = x;
 		centerYPosition = y;
 		

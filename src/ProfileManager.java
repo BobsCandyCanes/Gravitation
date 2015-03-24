@@ -2,9 +2,16 @@
 import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * Provides an interface for interacting with profiles
+ * 
+ * Allows saving and loading, as well as updating stats
+ * 
+ * Stores all currently loaded profiles in an arraylist, and keeps track of the currently selected one
+ */
 
 public class ProfileManager
-{
+{	
 	//Default values
 	protected final double D_MAX_HEALTH = 75;
 	protected final double D_HEALTH_REGEN = 0.1;

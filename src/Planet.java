@@ -1,16 +1,15 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RadialGradientPaint;
-import java.awt.MultipleGradientPaint.CycleMethod;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 
 public class Planet extends Entity
 {
-	private static final int DEFAULT_SIZE = 140;
+	private static final int DEFAULT_SIZE = 200;
+	private static final int G_CONSTANT = 9;
 
 	protected int radiusOfGravity;
 
@@ -48,9 +47,11 @@ public class Planet extends Entity
 
 	public void chooseRandomSprite()
 	{
+		//TODO: I've got an idea of how to make this better
+		
 		Random rand = new Random();
 
-		int randInt = rand.nextInt(4);
+		int randInt = rand.nextInt(5);
 
 		if(randInt == 0)
 		{
@@ -64,68 +65,61 @@ public class Planet extends Entity
 		{
 			importSprite("planet3.png");
 		}
-		else
+		else if(randInt == 3)
 		{
 			importSprite("planet4.png");
+		}
+		else
+		{
+			importSprite("planet5.png");
 		}
 	}
 
 	public void chooseRandomRotationSpeed()
 	{
-		rotationSpeed = (Math.random() * 0.25) + 0.05;
-
-		boolean counterClockwise = (Math.random() < 0.5); //random boolean
-
-		if(counterClockwise)
-		{
-			rotationSpeed *= -1;
-		}
+		Random random = new Random();
+		
+		//Choose a random speed between -0.25 an 0.25
+		rotationSpeed = (random.nextDouble() * 0.5) - 0.25;
+		
+		//Make sure it's not too slow
+		rotationSpeed += 0.05 * Math.signum(rotationSpeed);
 	}
 
 	public void act()
 	{
-		attractProjectiles();
+		attractEntities();
 		rotate();
 	}
 
-	public void attractProjectiles()
+	public void attractEntities()
 	{
-		ArrayList<Entity> entities = GamePanel.getEntities();
+		List<Entity> entities = GamePanel.getEntities();
 
 		for(int i = 0; i < entities.size(); i++)
 		{
 			Entity e = entities.get(i);
 
-			if(e instanceof Projectile || e instanceof Ship)
+			if(e instanceof Projectile || e instanceof Ship)	//TODO: Bad practice, fix it
 			{
-				double distanceFromProjectile = Math.abs(getDistanceFrom(e));
+				double distanceFromEntity = Math.abs(getDistanceFrom(e));
 
-				if((distanceFromProjectile <= radiusOfGravity))
+				if((distanceFromEntity <= radiusOfGravity))
 				{
 					double xDiff = getXDistanceFrom(e);
-					double yDiff = getYDistanceFrom(e);
+					double yDiff = -getYDistanceFrom(e);
 
+					double vectorAngle = Math.atan2(yDiff, xDiff);
+					
 					// F = G * ((m1 * m2) / (r^2))
 
-					double gravitationalForce = 9 * (mass * e.getMass()) / (distanceFromProjectile * distanceFromProjectile);
-
-					if(xDiff > 0)
-					{
-						e.setXVelocity(e.getXVelocity() - gravitationalForce);
-					}
-					else if(xDiff < 0)
-					{
-						e.setXVelocity(e.getXVelocity() + gravitationalForce);
-					}
-
-					if(yDiff > 0)
-					{
-						e.setYVelocity(e.getYVelocity() - gravitationalForce);
-					}
-					else if(yDiff < 0)
-					{
-						e.setYVelocity(e.getYVelocity() + gravitationalForce);
-					}
+					double gForce = G_CONSTANT * (mass * e.getMass()) / (distanceFromEntity * distanceFromEntity);			
+					
+					double gForceX = -gForce * Math.cos(vectorAngle);
+					double gForceY = gForce * Math.sin(vectorAngle);
+					
+					e.setXVelocity(e.getXVelocity() + gForceX);
+					e.setYVelocity(e.getYVelocity() + gForceY);
 				}
 			}
 		}
@@ -175,7 +169,8 @@ public class Planet extends Entity
 			addMoon((width / 3) * i + width);
 		}
 
-		addSpaceStation(width + 30);
+		//TODO: Maybe fully implement this later
+		//addSpaceStation(width + 30);
 	}
 
 	public void addMoon(double orbitRadius)

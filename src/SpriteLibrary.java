@@ -7,10 +7,13 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Imports and manages all sprites from the /Images folder
+ * Sprites can be accessed using the file name
+ */
 
 public final class SpriteLibrary
 {
-	
 	private static ArrayList<String> spritePaths = new ArrayList<String>();
 	
 	private static BufferedImage[] sprites;

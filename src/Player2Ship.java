@@ -1,7 +1,12 @@
+import java.awt.Color;
+
+
+/**
+ * Player2Ship is only used in the multiplayer game mode
+ */
 
 public class Player2Ship extends Ship
 {	
-
 	public Player2Ship()
 	{
 
@@ -19,6 +24,16 @@ public class Player2Ship extends Ship
 		importSprite("shipReversed.png");
 	}
 	
+	public void addEngineTrail()
+	{
+		double xVector = 12 * Math.cos(angleInRadians);
+		double yVector = 12 * Math.sin(angleInRadians);
+		
+		EngineTrail et = new EngineTrail((int)(centerXPosition + xVector), (int)(centerYPosition - yVector));
+		et.setColor(Color.RED);
+		GamePanel.addEngineTrail(et);
+	}
+	
 	public void shoot()
 	{
 		if(turnsSinceLastShot >= firingDelay)
@@ -31,7 +46,9 @@ public class Player2Ship extends Ship
 			double vX = xVelocity - xVector;
 			double vY = yVelocity + yVector;
 			
-			GamePanel.addEntity(new Projectile(getCenterXPosition() - xVector * 2.5, getCenterYPosition() + yVector * 2.5, vX, vY));
+			Projectile p = new Projectile(getCenterXPosition() - xVector * 2.5, getCenterYPosition() + yVector * 2.5, vX, vY);
+			p.setParent(this)
+;			GamePanel.addEntity(p);
 		}
 	}
 }

@@ -14,25 +14,25 @@ import javax.swing.JButton;
 public class GameButton extends JButton
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	private String spritePath;
 	private int width;
 	private int height;
-	
+
 	private int fontSize = 28;
-	
+
 	public GameButton(String label, String s, int w, int h)
 	{
 		setText(label);
 		spritePath = s;
 		width = w;
 		height = h;
-		
+
 		setAlignmentX(Component.CENTER_ALIGNMENT);
 		setPreferredSize(new Dimension(w, h));
 		setButtonLookAndFeel();
 	}
-	
+
 	public void setButtonLookAndFeel()
 	{
 		BufferedImage sprite = SpriteLibrary.getSprite(spritePath);

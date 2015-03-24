@@ -6,6 +6,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * Provides a way to save and load stats and upgrades
+ * 
+ * Each profile is saved in a text file in /Profiles
+ * 
+ * All interaction with profiles should be done through ProfileManager
+ */
+
 public class Profile
 {
 	private String name;

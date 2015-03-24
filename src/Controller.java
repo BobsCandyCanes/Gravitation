@@ -58,6 +58,14 @@ public class Controller implements KeyListener
 			if(keys[D]) { player1.rotate(-TURN_SPEED);   }
 
 			if(keys[SPACE]) { player1.shoot(); }
+			
+			if(!GamePanel.isMultiplayer())
+			{
+				if(keys[UP])  { player1.moveShip("forward", shipSpeed);  }
+				if(keys[DOWN])    { player1.moveShip("backward", shipSpeed * 0.8); }
+				if(keys[LEFT])  { player1.rotate(TURN_SPEED);  }
+				if(keys[RIGHT]) { player1.rotate(-TURN_SPEED);   }
+			}
 		}
 
 		if(player2 != null)
@@ -96,7 +104,7 @@ public class Controller implements KeyListener
 	{
 		try
 		{
-			Thread.sleep(100);
+			Thread.sleep(200);
 		} 
 		catch (InterruptedException e)
 		{
