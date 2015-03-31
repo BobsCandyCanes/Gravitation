@@ -28,6 +28,7 @@ public class MainMenu extends MainPanel implements ActionListener
 	private JPanel buttonPanel = new JPanel();
 	private JPanel profilePanel = new JPanel();
 
+	private GameButton controls;
 	private GameButton onePlayer;
 	private GameButton twoPlayers;
 	private GameButton shipMenu;
@@ -57,11 +58,21 @@ public class MainMenu extends MainPanel implements ActionListener
 
 	public void initializeButtonPanel()
 	{
+		controls  = new GameButton("Controls", "menuButton.png", buttonWidth, buttonHeight);
 		onePlayer  = new GameButton("One Player", "menuButton.png", buttonWidth, buttonHeight);
 		twoPlayers = new GameButton("Two Players", "menuButton.png", buttonWidth, buttonHeight);
 		shipMenu   = new GameButton("Upgrades", "menuButton.png", buttonWidth, buttonHeight);
 		quitGame   = new GameButton("Quit Game", "menuButton.png", buttonWidth, buttonHeight);
 
+		controls.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				GamePanel.setMultiplayer(false);
+				Gravity.setState("tutorialMenu");
+			}
+		});
+		
 		onePlayer.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -106,6 +117,8 @@ public class MainMenu extends MainPanel implements ActionListener
 		buttonPanel.add(twoPlayers);
 		buttonPanel.add(Box.createVerticalStrut(6));
 		buttonPanel.add(shipMenu);
+		buttonPanel.add(Box.createVerticalStrut(6));
+		buttonPanel.add(controls);
 		buttonPanel.add(Box.createVerticalStrut(6));
 		buttonPanel.add(quitGame);
 
@@ -188,7 +201,7 @@ public class MainMenu extends MainPanel implements ActionListener
 		profileChooser = new JComboBox(ProfileManager.getProfileNames());
 		profileChooser.setSelectedIndex(0);
 		profileChooser.addActionListener(this);	
-		profileChooser.setPreferredSize(new Dimension(200, 50));
+		profileChooser.setPreferredSize(new Dimension(200, 30));
 		profileChooser.setPrototypeDisplayValue("XXXXXXXXXXXXXXXXXXXX");
 
 		profileChooser.addActionListener(

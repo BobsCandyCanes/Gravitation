@@ -16,18 +16,18 @@ import javax.swing.Timer;
 
 public class GamePanel extends MainPanel implements ActionListener, Runnable
 {
-	private static final double LOGIC_FRAMERATE = 60;
-	private static final double DRAW_FRAMERATE = 120;
+	private static final int LOGIC_FRAMERATE = 8;
+	private static final int DRAW_FRAMERATE = 8;
 
 	private static final int WORLD_WIDTH = 3000;
 	private static final int WORLD_HEIGHT = 3000;
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static Timer drawTimer;
 
 	private static List<Entity> entities = new ArrayList<Entity>();
-	
+
 	//EngineTrails are stored in a separate list to improve performance
 	private static ArrayList<EngineTrail> engineTrails = new ArrayList<EngineTrail>();
 
@@ -50,7 +50,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	private int middle;
 	private int healthBarWidth = 90;
 	private int scoreWidth = 120;
-	
+
 	private static int backgroundX = 0;
 	private static int backgroundY = 0;
 
@@ -100,9 +100,9 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 		background = SpriteLibrary.getSprite("background.png");
 		background = SpriteLibrary.scaleSprite(background, panelWidth, panelHeight);
-		
+
 		// Improves performance, but causes flickering
-		 setDoubleBuffered(false);
+		setDoubleBuffered(false);
 	}
 
 	public void run()
@@ -115,12 +115,12 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 		paint(g);
 
-		timer = new Timer((int)(1000 / LOGIC_FRAMERATE), new ActionListener()
+		timer = new Timer(LOGIC_FRAMERATE, new ActionListener()
 		{
 			public void actionPerformed(ActionEvent arg0)
 			{
 				final SwingWorker<Void, Void> mainWorker = new SwingWorker<Void, Void>() 
-				{
+						{
 					protected Void doInBackground() throws Exception
 					{
 						controller.update();
@@ -129,7 +129,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 						{
 							entities.get(i).act();
 						}
-						
+
 						for(int i = 0; i < engineTrails.size(); i++)
 						{
 							engineTrails.get(i).act();
@@ -151,35 +151,35 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 						return null;
 					}
-				};			
-				mainWorker.execute(); 
-				
+						};			
+						mainWorker.execute(); 
 
-				//Moved this out of the swingworker due to weird concurrency issues
-				if(gameOver)
-				{
-					if(score > ProfileManager.getHighScore())
+
+						//Moved this out of the swingworker due to weird concurrency issues
+						if(gameOver)
 						{
-							ProfileManager.setHighScore(score);
+							if(score > ProfileManager.getHighScore())
+							{
+								ProfileManager.setHighScore(score);
+							}
+
+							try
+							{
+								Thread.sleep(500);
+							} 
+							catch (InterruptedException e)
+							{
+								e.printStackTrace();
+							}
+
+							Gravity.setState("gameOver");
 						}
-
-						try
-						{
-							Thread.sleep(500);
-						} 
-						catch (InterruptedException e)
-						{
-							e.printStackTrace();
-						}
-
-						Gravity.setState("gameOver");
-				}
 			}
 		});
 		timer.setInitialDelay(0);
 		timer.start();
-		
-		drawTimer = new Timer((int)(1000 / DRAW_FRAMERATE), this);
+
+		drawTimer = new Timer(DRAW_FRAMERATE, this);
 		drawTimer.setInitialDelay(0);
 		drawTimer.start();
 	}
@@ -195,7 +195,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 		Ship p1Ship = new Ship(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
 		player1Ship = p1Ship;
 		addEntity(p1Ship);
-		
+
 		if(isMultiplayer)
 		{
 			Ship p2Ship = new Player2Ship(WORLD_WIDTH / 2 + 200, WORLD_HEIGHT / 2);
@@ -297,7 +297,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	public void actionPerformed(ActionEvent a) 
 	{   
 		this.requestFocus();
-		
+
 		repaint();
 	}
 
@@ -305,10 +305,25 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 	{
 		if(player1Ship != null)
 		{
-			cameraX = (int)(player1Ship.getXPosition() - panelWidth / 2);
-			cameraY = (int)(player1Ship.getYPosition() - panelHeight / 2);
+			if(player2Ship != null)
+			{
+				int p1X = (int)(player1Ship.getXPosition());
+				int p1Y = (int)(player1Ship.getYPosition());
+				int p2X = (int)(player2Ship.getXPosition());
+				int p2Y = (int)(player2Ship.getYPosition());
+				
+				cameraX = (int)((p1X + p2X) / 2 - panelWidth / 2); 
+				cameraY = (int)((p1Y + p2Y) / 2 - panelHeight / 2); 
+				
+				cameraBounds = new Rectangle(cameraX, cameraY, panelWidth, panelHeight);
+			}
+			else
+			{
+				cameraX = (int)(player1Ship.getXPosition() - panelWidth / 2);
+				cameraY = (int)(player1Ship.getYPosition() - panelHeight / 2);
 
-			cameraBounds = new Rectangle(cameraX, cameraY, panelWidth, panelHeight);
+				cameraBounds = new Rectangle(cameraX, cameraY, panelWidth, panelHeight);
+			}
 		}
 	}
 
@@ -367,7 +382,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 		for(int i = 0; i < engineTrails.size(); i++)
 		{
 			EngineTrail et = engineTrails.get(i);
-			
+
 			//CameraBounds is instantiated in a separate thread, so sometimes this causes concurrency issues
 			if(cameraBounds.intersects(et.getBounds()))
 			{
@@ -391,7 +406,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 				g2d.translate(0, -dy);
 			}
 		}
-		
+
 		// Entities is being modified by the act thread
 		// Iterating through it here would cause concurrency issues
 		// So, we make a shallow copy of entities to use temporarily
@@ -425,11 +440,13 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 			}
 		}
 
+		/*
 		g2d.setColor(Color.GREEN);
 		g2d.drawRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+		*/
 
 		g2d.translate(cameraX, cameraY);
-
+		
 		drawHUD(g2d);
 	}
 
@@ -441,7 +458,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 			backgroundX -= player1Ship.getXVelocity() / 6;
 			backgroundY -= player1Ship.getYVelocity() / 6;
 		}
-		*/
+		 */
 
 		BufferedImage backgroundSub = background.getSubimage(0, 0, panelWidth, panelHeight);
 
@@ -530,7 +547,7 @@ public class GamePanel extends MainPanel implements ActionListener, Runnable
 
 			g.setColor(Color.LIGHT_GRAY);
 			g.drawPolygon(scoreXVals, scoreYVals, 4);
-			
+
 			g.setColor(Color.WHITE);
 			g.drawString("Score: " + score, 8, 13);
 

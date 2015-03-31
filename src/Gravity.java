@@ -73,6 +73,10 @@ public class Gravity
 		{
 			mainPanel = new UpgradeMenu(windowWidth, windowHeight, previousState);
 		}
+		else if(state.equals("tutorialMenu"))
+		{
+			mainPanel = new TutorialMenu(windowWidth, windowHeight);
+		}
 
 		mainWindow.add(mainPanel);
 		mainPanel.run();	

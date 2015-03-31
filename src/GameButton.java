@@ -43,7 +43,7 @@ public class GameButton extends JButton
 
 		setIcon(icon);
 		setMargin(new Insets(0, 0, 0, 0));
-		setBackground(new Color(0, 0, 0, 255));
+		setBackground(new Color(0, 0, 0, 0));
 
 		setFont(new Font("LucidaTypewriter", Font.ITALIC, fontSize));
 

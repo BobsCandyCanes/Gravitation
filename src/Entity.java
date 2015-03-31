@@ -28,18 +28,15 @@ public abstract class Entity
 	protected BufferedImage sprite;
 	
 	public Entity()
-	{
-		
+	{	
 	}
 
 	public void act()
-	{
-		
+	{	
 	}
 	
 	public void draw(Graphics g)
-	{
-		
+	{	
 	}
 	
 	public Ship getParent()
@@ -50,6 +47,14 @@ public abstract class Entity
 	public double getMass()
 	{
 		return mass;
+	}
+	
+	public double calcAngleTo(Entity target)
+	{
+		double xDifference = getXDistanceFrom(target);
+		double yDifference = getYDistanceFrom(target);
+
+		return Math.atan2(-yDifference, xDifference);
 	}
 	
 	public double getDistanceFrom(Entity e)

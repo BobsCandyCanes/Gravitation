@@ -35,7 +35,8 @@ public class AIGunship extends AIShip
 		firingDelay = 40;
 		health = 100;
 
-		sprite = SpriteLibrary.getSprite("enemyShip.png");
+		importSprite("enemyShip.png");
+
 		sprite = SpriteLibrary.scaleSprite(sprite, w, h);
 	}
 	
